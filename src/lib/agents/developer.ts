@@ -78,10 +78,28 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
       }), 120000); // 120s timeout
     } catch (timeoutErr) {
       if (timeoutErr instanceof Error && timeoutErr.message === 'v0_timeout') {
-        console.warn('v0 build timed out (likely stuck on integration prompt). Falling back to Gemini.');
-        throw new Error('v0 timed out — falling back to Gemini code gen');
+        console.warn('v0 build timed out. Sending restart message...');
+        // Try to restart by sending a follow-up message to skip integrations
+        try {
+          const restartChat = await v0WithTimeout(() => v0.chats.create({
+            projectId: project.id,
+            message: 'The previous build timed out. Skip ALL integrations. Do NOT add Supabase or Stripe integrations. Use @supabase/supabase-js and @google/genai as npm packages with process.env vars. Continue building the app. Complete all remaining tasks.',
+            system: 'Skip all integrations. Use npm packages with env vars. Complete the build.',
+          }), 90000);
+          const restartData = restartChat as Record<string, unknown>;
+          const restartVersion = restartData.latestVersion as Record<string, unknown> | undefined;
+          if (restartVersion) {
+            chat = restartChat;
+          } else {
+            throw new Error('Restart did not produce a version');
+          }
+        } catch {
+          console.warn('v0 restart also failed. Falling back to Gemini.');
+          throw new Error('v0 timed out — falling back to Gemini code gen');
+        }
+      } else {
+        throw timeoutErr;
       }
-      throw timeoutErr;
     }
     const chatData = chat as Record<string, unknown>;
     const latestVersion = chatData.latestVersion as Record<string, unknown> | undefined;
