@@ -1,6 +1,6 @@
 import { generateText } from 'ai';
 import { google } from '@ai-sdk/google';
-import { DEVELOPER_SYSTEM_PROMPT, buildDeveloperTaskPrompt } from '../prompts';
+import { DEVELOPER_SYSTEM_PROMPT } from '../prompts';
 
 // ── Types ──
 
@@ -25,15 +25,41 @@ export interface DevResult {
   };
 }
 
+// ── Build a concise v0 prompt from full specs ──
+async function buildV0Prompt(specs: DevSpecs): Promise<string> {
+  // Use Gemini to distill the full specs into a concise v0 build prompt
+  const { text } = await generateText({
+    model: google('gemini-3-flash-preview'),
+    system: `You are a prompt engineer. Distill complex product specs into a concise Next.js app build prompt for v0.
+Output a SHORT prompt (under 2000 chars) that tells v0 exactly what to build. Include:
+1. App name and one-sentence description
+2. The EXACT /api/agent route code (using @google/genai SDK)
+3. UI: what pages, what the main input/output looks like
+4. No integrations, no Supabase, no Stripe`,
+    prompt: `Distill these specs into a concise v0 build prompt:
+
+COMPANY: ${specs.companyBrief.substring(0, 500)}
+PRODUCT FEATURES: ${specs.prd.substring(0, 800)}
+ARCHITECTURE: ${specs.architectureDoc.substring(0, 800)}
+
+The /api/agent route MUST use this pattern:
+import { GoogleGenAI } from '@google/genai';
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY! });
+// Then: ai.models.generateContent({ model: 'gemini-3.1-pro-preview', contents: ..., config: { tools: [{ googleSearch: {} }] } })
+
+Generate a prompt under 2000 characters. Include the EXACT API route code.`,
+  });
+  return text;
+}
+
 // ── Developer Agent ──
 
 export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
-  const taskPrompt = buildDeveloperTaskPrompt(specs.companyBrief, specs.competitiveAnalysis, specs.prd, specs.architectureDoc);
-
   try {
     // Primary: v0 SDK
     const { v0 } = await import('v0-sdk');
-    // Pass ALL env vars so the generated app works without manual setup
+
+    // Pass env vars
     const envVars: { key: string; value: string }[] = [
       { key: 'GOOGLE_GENERATIVE_AI_API_KEY', value: process.env.GOOGLE_GENERATIVE_AI_API_KEY! },
     ];
@@ -46,11 +72,15 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
     if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
       envVars.push({ key: 'SUPABASE_SERVICE_ROLE_KEY', value: process.env.SUPABASE_SERVICE_ROLE_KEY });
     }
+
     const project = await v0.projects.create({
       name: 'foundersim-gen',
       environmentVariables: envVars,
     });
-    // Wrap v0 call with timeout — if it hangs (integration prompt), retry
+
+    // Build concise prompt (Gemini distills the full specs)
+    const v0Prompt = await buildV0Prompt(specs);
+
     const v0WithTimeout = async <T>(fn: () => Promise<T>, timeoutMs: number): Promise<T> => {
       return Promise.race([
         fn(),
@@ -61,54 +91,32 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
     let chat;
     try {
       chat = await v0WithTimeout(() => v0.chats.create({
-      projectId: project.id,
-      message: taskPrompt + `\n\nCRITICAL BUILD RULES:
-- ABSOLUTELY DO NOT use v0 integrations for Supabase, Stripe, or any service. NO integration prompts. NO "Install" buttons. The app MUST build without ANY human interaction.
-- For Supabase: import { createClient } from '@supabase/supabase-js' and use process.env.NEXT_PUBLIC_SUPABASE_URL and process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY directly. These env vars are ALREADY SET.
-- For any database needs: use @supabase/supabase-js npm package with env vars. NEVER use v0's Supabase integration.
-- The build MUST complete autonomously. If you add any integration that requires user approval, the build will timeout and fail.
-- For the /api/agent endpoint: use @google/genai SDK directly, NOT the Vercel AI SDK, NOT ai-gateway.vercel.sh.
-- Import: import { GoogleGenAI } from '@google/genai';
-- Initialize: const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY! });
-- Call: ai.models.generateContent({ model: 'gemini-3.1-pro-preview', contents: '...', config: { tools: [{ googleSearch: {} }, { urlContext: {} }] } })
-- IMPORTANT: The model ID MUST be 'gemini-3.1-pro-preview' (NOT gemini-2.0-flash, NOT gemini-1.5-flash, NOT gemini-pro — those are DEPRECATED and will return 404 errors)
-- Add @google/genai to dependencies.
-- The GOOGLE_GENERATIVE_AI_API_KEY env var is already set in Vercel.
-- NEVER use Vercel AI Gateway (ai-gateway.vercel.sh) — it will cause server errors.
-- NEVER use deprecated models (gemini-2.0-flash, gemini-1.5-flash, gemini-pro) — they return 404.
-- Use standard Next.js App Router structure: app/ directory at root or src/app/. Do NOT put files in non-standard locations.`,
-        system: DEVELOPER_SYSTEM_PROMPT,
-      }), 120000); // 120s timeout
+        projectId: project.id,
+        message: v0Prompt + `\n\nRULES: No integrations. No Supabase/Stripe via v0. Use npm packages + env vars. Model MUST be gemini-3.1-pro-preview. Use @google/genai SDK. Standard app/ directory structure.`,
+        system: 'Build a Next.js 15 app. Use the exact API route code provided. No integrations.',
+      }), 150000); // 150s timeout
     } catch (timeoutErr) {
       if (timeoutErr instanceof Error && timeoutErr.message === 'v0_timeout') {
-        console.warn('v0 build timed out. Sending restart message...');
-        // Try to restart by sending a follow-up message to skip integrations
+        console.warn('v0 timed out. Trying restart...');
         try {
-          const restartChat = await v0WithTimeout(() => v0.chats.create({
+          chat = await v0WithTimeout(() => v0.chats.create({
             projectId: project.id,
-            message: 'The previous build timed out. Skip ALL integrations. Do NOT add Supabase or Stripe integrations. Use @supabase/supabase-js and @google/genai as npm packages with process.env vars. Continue building the app. Complete all remaining tasks.',
-            system: 'Skip all integrations. Use npm packages with env vars. Complete the build.',
+            message: 'Skip all integrations. Complete the build with npm packages and env vars only.',
+            system: 'Complete the build. No integrations.',
           }), 90000);
-          const restartData = restartChat as Record<string, unknown>;
-          const restartVersion = restartData.latestVersion as Record<string, unknown> | undefined;
-          if (restartVersion) {
-            chat = restartChat;
-          } else {
-            throw new Error('Restart did not produce a version');
-          }
         } catch {
-          console.warn('v0 restart also failed. Falling back to Gemini.');
-          throw new Error('v0 timed out — falling back to Gemini code gen');
+          throw new Error('v0 timed out — falling back to Gemini');
         }
       } else {
         throw timeoutErr;
       }
     }
+
     const chatData = chat as Record<string, unknown>;
     const latestVersion = chatData.latestVersion as Record<string, unknown> | undefined;
     const fileCount = (latestVersion?.files as unknown[])?.length || 0;
 
-    // Auto-deploy: try to create a deployment from the chat
+    // Auto-deploy
     if (latestVersion?.id && chatData.id && chatData.projectId) {
       try {
         const deployment = await v0.deployments.create({
@@ -131,7 +139,6 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
       }
     }
 
-    // Fall through if deployment failed or missing required IDs
     return {
       summary: `Generated ${fileCount} files via v0`,
       demoUrl: (latestVersion?.demoUrl as string) || null,
@@ -141,12 +148,13 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
     };
   } catch (err) {
     console.error('v0 SDK failed, falling back to Gemini:', err);
-    // Fallback: Gemini 3.1 Pro direct code gen
+    // Fallback: Gemini direct code gen
+    const allSpecs = `Company: ${specs.companyBrief.substring(0, 500)}\nPRD: ${specs.prd.substring(0, 1000)}\nArchitecture: ${specs.architectureDoc.substring(0, 1000)}`;
     const { text } = await generateText({
       model: google('gemini-3.1-pro-preview'),
       system: DEVELOPER_SYSTEM_PROMPT,
       maxOutputTokens: 32000,
-      prompt: `${taskPrompt}\n\nOutput each file as:\n### FILE: src/app/page.tsx\n\`\`\`tsx\ncode here\n\`\`\``,
+      prompt: `Generate a Next.js 15 app. ${allSpecs}\n\nOutput each file as:\n### FILE: src/app/page.tsx\n\`\`\`tsx\ncode\n\`\`\``,
     });
     return { summary: 'Generated via Gemini fallback', demoUrl: null, webUrl: null, rawCode: text };
   }
