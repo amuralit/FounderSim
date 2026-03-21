@@ -384,8 +384,7 @@ BUILD PRIORITIES (in order):
 2. BUILD THE WEB UI: A beautiful interface that calls /api/agent and renders the response.
    - Landing page with hero section, value proposition, and a prominent input area
    - The input area should be the FIRST thing users see — not buried below the fold
-   - Smart input handling: auto-normalize URLs (add https:// if missing), accept partial inputs, show helpful placeholders with examples
-   - Never require users to type full URLs with protocol — accept "vercel.com" and normalize to "https://vercel.com"
+   - Smart input UX: accept messy user input and normalize it. Never reject input for formatting reasons. If the user types a URL without https://, add it. If they type a name with extra spaces, trim it. Make the input feel forgiving and intelligent.
    - Real-time loading state while the agent processes (skeleton UI, progress messages)
    - Beautiful rendering of the agent's structured output
    - All marketing copy uses REAL data from the Market Research (competitor names, real prices, real positioning)
