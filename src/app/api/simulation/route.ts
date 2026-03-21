@@ -1,9 +1,12 @@
 import { NextRequest } from 'next/server';
+import { generateText } from 'ai';
+import { google } from '@ai-sdk/google';
 import { runResearchAgent } from '@/lib/agents/research';
 import { runProductAgent } from '@/lib/agents/product';
 import { runArchitectAgent } from '@/lib/agents/architect';
 import { runDeveloperAgent } from '@/lib/agents/developer';
 import { generateLogo, generateCompetitiveVisual, generateMarketMap, generateArchitectureDiagram, generateProductMockup } from '@/lib/image-gen';
+import { CEO_SYSTEM_PROMPT } from '@/lib/prompts';
 
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
@@ -46,6 +49,19 @@ export async function POST(req: NextRequest) {
         send('agent_output', { agent: 'research', output: researchOutput });
         send('agent_done', { agent: 'research' });
 
+        // ── CEO REVIEWS RESEARCH ──
+        send('agent_speech', { agent: 'ceo', text: 'Reviewing competitive intelligence...' });
+        try {
+          const { text: ceoResearchReview } = await generateText({
+            model: google('gemini-3-flash-preview'),
+            system: CEO_SYSTEM_PROMPT + '\n\nYou are reviewing your Research analyst\'s work. Be constructive but demanding. Point out gaps or weak spots in 2-3 sentences. If the research is solid, say so briefly and highlight the key insight.',
+            prompt: `Company Brief:\n${companyBrief}\n\nResearch Output:\n${researchOutput.substring(0, 2000)}\n\nGive your CEO review in 2-3 sentences. No markdown, plain text.`,
+          });
+          send('agent_speech', { agent: 'ceo', text: ceoResearchReview.substring(0, 150) });
+        } catch (e) {
+          console.error('CEO research review error (non-blocking):', e);
+        }
+
         // Fire market map gen in parallel (non-blocking)
         const marketMapPromise = generateMarketMap(
           companyBrief.split('\n')[0] || 'startup',
@@ -72,6 +88,19 @@ export async function POST(req: NextRequest) {
         }
         send('agent_output', { agent: 'product', output: productOutput });
         send('agent_done', { agent: 'product' });
+
+        // ── CEO REVIEWS PRODUCT ──
+        send('agent_speech', { agent: 'ceo', text: 'Checking product scope...' });
+        try {
+          const { text: ceoProductReview } = await generateText({
+            model: google('gemini-3-flash-preview'),
+            system: CEO_SYSTEM_PROMPT + '\n\nYou are reviewing your Product manager\'s PRD. Push back if scope is too big or the killer feature isn\'t clear enough. 2-3 sentences.',
+            prompt: `Company Brief:\n${companyBrief}\n\nPRD:\n${productOutput.substring(0, 2000)}\n\nGive your CEO review in 2-3 sentences. No markdown, plain text.`,
+          });
+          send('agent_speech', { agent: 'ceo', text: ceoProductReview.substring(0, 150) });
+        } catch (e) {
+          console.error('CEO product review error (non-blocking):', e);
+        }
 
         // Fire product mockup gen in parallel (non-blocking)
         const productMockupPromise = generateProductMockup(
@@ -102,6 +131,19 @@ export async function POST(req: NextRequest) {
         }
         send('agent_output', { agent: 'architect', output: architectOutput });
         send('agent_done', { agent: 'architect' });
+
+        // ── CEO REVIEWS ARCHITECTURE ──
+        send('agent_speech', { agent: 'ceo', text: 'Reviewing architecture decisions...' });
+        try {
+          const { text: ceoArchReview } = await generateText({
+            model: google('gemini-3-flash-preview'),
+            system: CEO_SYSTEM_PROMPT + '\n\nYou are reviewing your Architect\'s design. Flag anything over-engineered or risky for an MVP. 2-3 sentences.',
+            prompt: `Company Brief:\n${companyBrief}\n\nArchitecture:\n${architectOutput.substring(0, 2000)}\n\nGive your CEO review in 2-3 sentences. No markdown, plain text.`,
+          });
+          send('agent_speech', { agent: 'ceo', text: ceoArchReview.substring(0, 150) });
+        } catch (e) {
+          console.error('CEO architecture review error (non-blocking):', e);
+        }
 
         // Fire architecture diagram gen in parallel (non-blocking)
         const archDiagramPromise = generateArchitectureDiagram(
