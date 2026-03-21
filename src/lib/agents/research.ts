@@ -200,7 +200,7 @@ export async function runResearchAgent(companyBrief: string): Promise<ResearchOu
     contents: `${RESEARCH_SYSTEM_PROMPT}\n\n${buildResearchTaskPrompt(companyBrief)}`,
     config: {
       tools: [{ googleSearch: {} }, { urlContext: {} }],
-      thinkingConfig: { thinkingLevel: ThinkingLevel.HIGH },
+      thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
     },
   });
 
