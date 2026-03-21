@@ -71,9 +71,11 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
 - Import: import { GoogleGenAI } from '@google/genai';
 - Initialize: const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY! });
 - Call: ai.models.generateContent({ model: 'gemini-3.1-pro-preview', contents: '...', config: { tools: [{ googleSearch: {} }, { urlContext: {} }] } })
+- IMPORTANT: The model ID MUST be 'gemini-3.1-pro-preview' (NOT gemini-2.0-flash, NOT gemini-1.5-flash, NOT gemini-pro — those are DEPRECATED and will return 404 errors)
 - Add @google/genai to dependencies.
 - The GOOGLE_GENERATIVE_AI_API_KEY env var is already set in Vercel.
-- NEVER use Vercel AI Gateway (ai-gateway.vercel.sh) — it will cause server errors.`,
+- NEVER use Vercel AI Gateway (ai-gateway.vercel.sh) — it will cause server errors.
+- NEVER use deprecated models (gemini-2.0-flash, gemini-1.5-flash, gemini-pro) — they return 404.`,
         system: DEVELOPER_SYSTEM_PROMPT,
       }), 120000); // 120s timeout
     } catch (timeoutErr) {

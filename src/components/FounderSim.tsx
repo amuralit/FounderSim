@@ -166,7 +166,26 @@ export default function FounderSim() {
       if (remaining.length > 0) {
         loadProjectState(remaining[0]);
       } else {
-        handleNewProject();
+        // Reset to clean idle state
+        setCurrentProjectId(null);
+        setPhase('idle');
+        setMission('');
+        setCompanyBrief('');
+        setPendingBrief(null);
+        setOutputs({});
+        setChatHistories({});
+        setDecisions([]);
+        setStatuses(initialStatuses);
+        setPositions(initialPositions);
+        setDemoUrl(null);
+        setWebUrl(null);
+        setLogoBase64(null);
+        setCompetitiveVisualBase64(null);
+        setMarketMapBase64(null);
+        setArchDiagramBase64(null);
+        setProductMockupBase64(null);
+        setStartTime(null);
+        setTotalTime(null);
       }
     }
   }
