@@ -33,6 +33,7 @@ interface ArtifactEntry {
   content: string | null;
   mimeType: string;
   isBinary: boolean;
+  associatedImage?: string | null;  // base64 image to embed in PDF
 }
 
 /* ------------------------------------------------------------------ */
@@ -45,77 +46,269 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function downloadAsPDF(filename: string, content: string, title: string) {
+function downloadAsPDF(filename: string, content: string, title: string, imageBase64?: string | null) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 50;
   const maxWidth = pageWidth - margin * 2;
-  let y = 60;
+  let y = 50;
 
-  // Title
+  /* --- Title bar with amber accent --- */
+  // Amber accent line at top
+  doc.setFillColor(245, 158, 11); // #f59e0b
+  doc.rect(0, 0, pageWidth, 6, 'F');
+
+  y = 50;
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
-  doc.setTextColor(17, 24, 39); // #111827
+  doc.setFontSize(24);
+  doc.setTextColor(245, 158, 11); // #f59e0b amber
   doc.text(title, margin, y);
+  y += 12;
+
+  // Subtitle with date
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(156, 163, 175); // #9CA3AF
+  doc.text(`FounderSim AI-Generated Document  \u2022  ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, margin, y + 14);
   y += 30;
 
   // Separator line
   doc.setDrawColor(232, 234, 240); // #E8EAF0
+  doc.setLineWidth(1);
   doc.line(margin, y, pageWidth - margin, y);
   y += 20;
 
-  // Strip markdown for clean text
-  const cleanText = content
-    .replace(/#{1,6}\s*/g, '')
-    .replace(/\*\*([^*]+)\*\*/g, '$1')
-    .replace(/\*([^*]+)\*/g, '$1')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/^\s*[-*]\s+/gm, '\u2022 ')
-    .replace(/\|.*\|/g, '')
-    .replace(/^---+$/gm, '')
-    .trim();
-
-  // Body text
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(11);
-  doc.setTextColor(55, 65, 81); // #374151
-
-  const lines: string[] = doc.splitTextToSize(cleanText, maxWidth);
-  for (const line of lines) {
-    if (y > doc.internal.pageSize.getHeight() - 60) {
-      doc.addPage();
-      y = 50;
-    }
-    // Detect section headers (lines that were originally ## headers)
-    if (line.match(/^[A-Z][A-Za-z\s]+:?$/) && line.length < 50) {
-      y += 10;
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(13);
-      doc.setTextColor(17, 24, 39);
-      doc.text(line, margin, y);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(11);
-      doc.setTextColor(55, 65, 81);
-      y += 18;
-    } else {
-      doc.text(line, margin, y);
-      y += 15;
+  /* --- Embedded image (if provided) --- */
+  if (imageBase64) {
+    try {
+      // Detect image format: PNG starts with iVBOR, JPEG with /9j/
+      const format = imageBase64.startsWith('/9j/') ? 'JPEG' : 'PNG';
+      const dataUri = format === 'JPEG'
+        ? `data:image/jpeg;base64,${imageBase64}`
+        : `data:image/png;base64,${imageBase64}`;
+      const imgHeight = maxWidth * 0.5;
+      // Check if image fits on current page
+      if (y + imgHeight + 20 > pageHeight - 60) {
+        doc.addPage();
+        y = 50;
+      }
+      doc.addImage(dataUri, format, margin, y, maxWidth, imgHeight);
+      y += imgHeight + 20;
+    } catch {
+      /* image embed failed, continue without it */
     }
   }
 
-  // Footer on each page
+  /* --- Pre-process content into structured lines --- */
+  // Split content into lines, preserving markdown structure for formatting
+  const rawLines = content.split('\n');
+  const bulletIndent = 12;
+
+  for (const rawLine of rawLines) {
+    const trimmed = rawLine.trim();
+
+    // Skip empty lines but add spacing
+    if (!trimmed) {
+      y += 8;
+      continue;
+    }
+
+    // Skip markdown table separator rows
+    if (/^\|?[\s\-:|]+\|?$/.test(trimmed)) continue;
+    // Skip horizontal rules
+    if (/^---+$/.test(trimmed)) {
+      if (y + 10 > pageHeight - 60) { doc.addPage(); y = 50; }
+      doc.setDrawColor(232, 234, 240);
+      doc.setLineWidth(0.5);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 12;
+      continue;
+    }
+
+    // Detect heading levels
+    const h1Match = trimmed.match(/^#\s+(.+)/);
+    const h2Match = trimmed.match(/^##\s+(.+)/);
+    const h3Match = trimmed.match(/^###\s+(.+)/);
+    const h4Match = trimmed.match(/^####\s+(.+)/);
+
+    // Clean inline markdown from text
+    const cleanInline = (t: string) => t
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+
+    if (h1Match || h2Match) {
+      const headerText = cleanInline((h1Match || h2Match)![1]);
+      y += 14;
+      if (y + 24 > pageHeight - 60) { doc.addPage(); y = 50; }
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(h1Match ? 18 : 15);
+      doc.setTextColor(59, 130, 246); // #3b82f6 blue
+      const headerLines: string[] = doc.splitTextToSize(headerText, maxWidth);
+      for (const hl of headerLines) {
+        if (y > pageHeight - 60) { doc.addPage(); y = 50; }
+        doc.text(hl, margin, y);
+        y += h1Match ? 22 : 20;
+      }
+      // Underline for h1
+      if (h1Match) {
+        doc.setDrawColor(59, 130, 246);
+        doc.setLineWidth(0.75);
+        doc.line(margin, y - 8, margin + Math.min(doc.getTextWidth(headerText), maxWidth), y - 8);
+      }
+      y += 4;
+      continue;
+    }
+
+    if (h3Match || h4Match) {
+      const headerText = cleanInline((h3Match || h4Match)![1]);
+      y += 8;
+      if (y + 18 > pageHeight - 60) { doc.addPage(); y = 50; }
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(55, 65, 81); // #374151 dark gray
+      const headerLines: string[] = doc.splitTextToSize(headerText, maxWidth);
+      for (const hl of headerLines) {
+        if (y > pageHeight - 60) { doc.addPage(); y = 50; }
+        doc.text(hl, margin, y);
+        y += 16;
+      }
+      y += 2;
+      continue;
+    }
+
+    // Detect bullet points
+    const bulletMatch = trimmed.match(/^[-*+]\s+(.+)/);
+    const numberedMatch = trimmed.match(/^(\d+)[.)]\s+(.+)/);
+
+    if (bulletMatch) {
+      const bulletText = cleanInline(bulletMatch[1]);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(55, 65, 81);
+      const wrappedLines: string[] = doc.splitTextToSize(bulletText, maxWidth - bulletIndent - 10);
+      for (let li = 0; li < wrappedLines.length; li++) {
+        if (y > pageHeight - 60) { doc.addPage(); y = 50; }
+        if (li === 0) {
+          doc.setTextColor(245, 158, 11); // amber bullet
+          doc.text('\u2022', margin + bulletIndent, y);
+          doc.setTextColor(55, 65, 81);
+          doc.text(wrappedLines[li], margin + bulletIndent + 10, y);
+        } else {
+          doc.text(wrappedLines[li], margin + bulletIndent + 10, y);
+        }
+        y += 15;
+      }
+      continue;
+    }
+
+    if (numberedMatch) {
+      const numLabel = `${numberedMatch[1]}.`;
+      const numText = cleanInline(numberedMatch[2]);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(55, 65, 81);
+      const wrappedLines: string[] = doc.splitTextToSize(numText, maxWidth - bulletIndent - 16);
+      for (let li = 0; li < wrappedLines.length; li++) {
+        if (y > pageHeight - 60) { doc.addPage(); y = 50; }
+        if (li === 0) {
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(59, 130, 246); // blue number
+          doc.text(numLabel, margin + bulletIndent, y);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(55, 65, 81);
+          doc.text(wrappedLines[li], margin + bulletIndent + 16, y);
+        } else {
+          doc.text(wrappedLines[li], margin + bulletIndent + 16, y);
+        }
+        y += 15;
+      }
+      continue;
+    }
+
+    // Detect table rows (simple | col | col | rendering)
+    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      const cells = trimmed.split('|').filter(c => c.trim()).map(c => cleanInline(c.trim()));
+      if (cells.length > 0) {
+        if (y + 18 > pageHeight - 60) { doc.addPage(); y = 50; }
+        const colWidth = maxWidth / cells.length;
+        // Detect if this is a header row (bold cells or first row)
+        const isHeader = cells.some(c => /^\*\*.*\*\*$/.test(c.trim())) || rawLines.indexOf(rawLine) === rawLines.findIndex(l => l.trim().startsWith('|'));
+        doc.setFont('helvetica', isHeader ? 'bold' : 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(isHeader ? 17 : 55, isHeader ? 24 : 65, isHeader ? 39 : 81);
+        if (isHeader) {
+          doc.setFillColor(243, 244, 246); // #F3F4F6
+          doc.rect(margin, y - 10, maxWidth, 16, 'F');
+        }
+        for (let ci = 0; ci < cells.length; ci++) {
+          const cellText = cells[ci].substring(0, Math.floor(colWidth / 5)); // truncate to fit
+          doc.text(cellText, margin + ci * colWidth + 4, y);
+        }
+        y += 16;
+        continue;
+      }
+    }
+
+    // Regular paragraph text
+    const cleanedLine = cleanInline(trimmed);
+    // Detect standalone header-like lines (all caps or Title Case ending with colon)
+    const isStandaloneHeader = (
+      (cleanedLine.match(/^[A-Z][A-Za-z\s&/]+:?\s*$/) && cleanedLine.length < 60) ||
+      cleanedLine === cleanedLine.toUpperCase() && cleanedLine.length > 3 && cleanedLine.length < 60
+    );
+
+    if (isStandaloneHeader) {
+      y += 10;
+      if (y + 18 > pageHeight - 60) { doc.addPage(); y = 50; }
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.setTextColor(59, 130, 246); // blue
+      doc.text(cleanedLine, margin, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(55, 65, 81);
+      y += 20;
+    } else {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(55, 65, 81);
+      const wrappedLines: string[] = doc.splitTextToSize(cleanedLine, maxWidth);
+      for (const wl of wrappedLines) {
+        if (y > pageHeight - 60) { doc.addPage(); y = 50; }
+        doc.text(wl, margin, y);
+        y += 15;
+      }
+    }
+  }
+
+  /* --- Professional footer on each page --- */
   const pageCount = doc.getNumberOfPages();
+  const timestamp = new Date().toLocaleString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
-    doc.setFontSize(9);
+    // Footer separator line
+    doc.setDrawColor(232, 234, 240);
+    doc.setLineWidth(0.5);
+    doc.line(margin, pageHeight - 45, pageWidth - margin, pageHeight - 45);
+    // Left: branding
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(245, 158, 11); // amber
+    doc.text('FounderSim', margin, pageHeight - 30);
+    doc.setFont('helvetica', 'normal');
     doc.setTextColor(156, 163, 175);
-    doc.text(
-      `Generated by FounderSim \u2022 Page ${i}/${pageCount}`,
-      pageWidth / 2,
-      doc.internal.pageSize.getHeight() - 30,
-      { align: 'center' },
-    );
+    doc.text(`  \u2022  AI-Generated  \u2022  ${timestamp}`, margin + doc.getTextWidth('FounderSim'), pageHeight - 30);
+    // Right: page number
+    const pageText = `Page ${i} of ${pageCount}`;
+    doc.setFontSize(8);
+    doc.setTextColor(156, 163, 175);
+    doc.text(pageText, pageWidth - margin, pageHeight - 30, { align: 'right' });
   }
 
   doc.save(filename);
@@ -254,7 +447,7 @@ function FileRow({
       downloadBase64File(artifact.filename, artifact.content, artifact.mimeType);
     } else {
       const title = artifact.filename.replace('.pdf', '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-      downloadAsPDF(artifact.filename, artifact.content, title);
+      downloadAsPDF(artifact.filename, artifact.content, title, artifact.associatedImage);
     }
   }, [artifact]);
 
@@ -437,6 +630,7 @@ export default function ArtifactPanel({
         content: companyBrief || null,
         mimeType: 'application/pdf',
         isBinary: false,
+        associatedImage: logoBase64,
       },
       {
         id: 'research',
@@ -448,6 +642,7 @@ export default function ArtifactPanel({
         content: outputs['research'] || null,
         mimeType: 'application/pdf',
         isBinary: false,
+        associatedImage: marketMapBase64,
       },
       {
         id: 'product',
@@ -459,6 +654,7 @@ export default function ArtifactPanel({
         content: outputs['product'] || null,
         mimeType: 'application/pdf',
         isBinary: false,
+        associatedImage: productMockupBase64,
       },
       {
         id: 'architect',
@@ -470,6 +666,7 @@ export default function ArtifactPanel({
         content: outputs['architect'] || null,
         mimeType: 'application/pdf',
         isBinary: false,
+        associatedImage: archDiagramBase64,
       },
       {
         id: 'developer',
@@ -560,7 +757,7 @@ export default function ArtifactPanel({
         downloadBase64File(artifact.filename, artifact.content, artifact.mimeType);
       } else {
         const title = artifact.filename.replace('.pdf', '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        downloadAsPDF(artifact.filename, artifact.content, title);
+        downloadAsPDF(artifact.filename, artifact.content, title, artifact.associatedImage);
       }
     }
   }, [artifacts]);

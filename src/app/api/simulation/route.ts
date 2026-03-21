@@ -191,21 +191,19 @@ export async function POST(req: NextRequest) {
           architectOutput.substring(0, 400)
         ).catch(() => null);
 
-        // ── COLLECT IMAGES (before developer, so they show during build) ──
-        try {
-          const [logo, competitiveVisual, marketMap, archDiagram, productMockup] = await Promise.all([
-            logoPromise, competitiveVisualPromise, marketMapPromise, archDiagramPromise, productMockupPromise,
-          ]);
-          if (logo) send('image_ready', { type: 'logo', data: logo });
-          if (competitiveVisual) send('image_ready', { type: 'competitive_visual', data: competitiveVisual });
-          if (marketMap) send('image_ready', { type: 'market_map', data: marketMap });
-          if (archDiagram) send('image_ready', { type: 'architecture_diagram', data: archDiagram });
-          if (productMockup) send('image_ready', { type: 'product_mockup', data: productMockup });
-        } catch (imgErr) {
-          console.error('Image collection error:', imgErr);
-        }
+        // ── COLLECT IMAGES (non-blocking, 15s timeout per image) ──
+        const withTimeout = (p: Promise<string | null>, ms: number) =>
+          Promise.race([p, new Promise<null>(r => setTimeout(() => r(null), ms))]);
 
-        // ── DEVELOPER AGENT ──
+        Promise.allSettled([
+          withTimeout(logoPromise, 15000).then(d => d && send('image_ready', { type: 'logo', data: d })),
+          withTimeout(competitiveVisualPromise, 15000).then(d => d && send('image_ready', { type: 'competitive_visual', data: d })),
+          withTimeout(marketMapPromise, 15000).then(d => d && send('image_ready', { type: 'market_map', data: d })),
+          withTimeout(archDiagramPromise, 15000).then(d => d && send('image_ready', { type: 'architecture_diagram', data: d })),
+          withTimeout(productMockupPromise, 15000).then(d => d && send('image_ready', { type: 'product_mockup', data: d })),
+        ]).catch(() => { /* images are best-effort */ });
+
+        // ── DEVELOPER AGENT (starts immediately, doesn't wait for images) ──
         send('agent_start', { agent: 'developer' });
         send('agent_speech', { agent: 'developer', text: 'Building the app with v0 Platform API...' });
 
@@ -273,7 +271,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Images already collected before developer agent started
+        // Images collected asynchronously (non-blocking, with 15s timeout)
 
         // ── DEPLOY STATUS ──
         send('deploy_status', {
