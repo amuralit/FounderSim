@@ -44,7 +44,7 @@ const roleEmoji: Record<AgentId, string> = {
 
 /** Parse CEO brief into structured sections */
 function parseBrief(text: string): { intro: string; fields: { label: string; value: string }[]; outro: string } | null {
-  const labels = ['Mission', 'Target Customer', 'Pain Level', 'Value Proposition', 'Wedge Product', 'Key Metric', '10x Vision', 'Why Now'];
+  const labels = ['Mission', 'Target Customer', 'Urgency', 'Pain Level', 'Value Proposition', 'Wedge Product', 'Key Metric', '10x Vision', 'Why Now'];
   const hasField = labels.filter(l => text.includes(`${l}:`)).length >= 4;
   if (!hasField) return null;
 
