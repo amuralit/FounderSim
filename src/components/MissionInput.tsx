@@ -6,10 +6,19 @@ interface MissionInputProps {
   onSubmit: (mission: string) => void;
 }
 
-const EXAMPLES = [
-  'A tool that helps freelancers get paid faster',
-  'AI-powered competitive intelligence for sales teams',
-  'A smart booking system for independent consultants',
+const SEEDER_PROMPTS = [
+  {
+    label: 'Stock Research Agent',
+    prompt: 'An AI agent that takes any stock ticker and instantly generates a Wall Street-quality research brief — real-time news sentiment, bull vs bear cases with evidence, competitor comparison with live market data, and key risk factors. Like having a Goldman Sachs analyst on demand for $29/mo.',
+  },
+  {
+    label: 'Company Tear-Down Agent',
+    prompt: 'An AI agent that takes any company website URL and generates a complete due diligence tear-down in 60 seconds — business model analysis, revenue stream identification, tech stack detection, hiring signals from job postings, competitive positioning, growth trajectory, and strategic weaknesses. A VC analyst\'s 2-hour research compressed into one API call.',
+  },
+  {
+    label: 'Battle Card Agent',
+    prompt: 'An AI agent that takes any competitor\'s website URL and generates a structured sales battle card — company overview, key strengths, exploitable weaknesses, pricing breakdown, objection handling scripts, and win strategies. Replaces the $20K/yr tools like Klue and Crayon with a self-serve agent at $29/mo.',
+  },
 ];
 
 export default function MissionInput({ onSubmit }: MissionInputProps) {
@@ -89,28 +98,33 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
           </button>
         </div>
 
-        {/* Example pills */}
-        <div className="flex flex-wrap justify-center gap-2 mb-12">
-          {EXAMPLES.map(ex => (
+        {/* Seeder prompt cards */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-12 max-w-[680px] mx-auto">
+          {SEEDER_PROMPTS.map(seed => (
             <button
-              key={ex}
-              onClick={() => setMission(ex)}
-              className="px-4 py-2 rounded-full text-xs cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
+              key={seed.label}
+              onClick={() => setMission(seed.prompt)}
+              className="flex-1 text-left px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
               style={{
-                background: '#F3F4F6',
+                background: '#FFFFFF',
                 border: '1px solid #E8EAF0',
-                color: '#6B7280',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
               }}
               onMouseEnter={e => {
-                (e.target as HTMLElement).style.borderColor = '#D1D5DB';
-                (e.target as HTMLElement).style.color = '#374151';
+                const el = e.currentTarget;
+                el.style.borderColor = '#D1D5DB';
+                el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
               }}
               onMouseLeave={e => {
-                (e.target as HTMLElement).style.borderColor = '#E8EAF0';
-                (e.target as HTMLElement).style.color = '#6B7280';
+                const el = e.currentTarget;
+                el.style.borderColor = '#E8EAF0';
+                el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.02)';
               }}
             >
-              {ex}
+              <div className="text-sm font-semibold mb-1" style={{ color: '#111827' }}>{seed.label}</div>
+              <div className="text-[11px] leading-relaxed" style={{ color: '#9CA3AF' }}>
+                {seed.prompt.substring(0, 60)}...
+              </div>
             </button>
           ))}
         </div>
