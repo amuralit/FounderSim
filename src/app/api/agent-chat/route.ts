@@ -29,20 +29,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
     }
 
-    const systemPrompt = `${PROMPT_MAP[agentId]}
+    const agentDef = AGENTS.find(a => a.id === agentId)!;
+    const systemPrompt = `You are ${agentDef.name}, the ${agentDef.role} at this startup. ${agentDef.personality}
 
-The Board of Directors is speaking to you directly. You must respond professionally and with substance.
+Your work is ALREADY COMPLETE. The pipeline has finished. You are now answering follow-up questions from the Board of Directors about your deliverables.
 
-RESPONSE FORMAT:
-- Use markdown formatting: **bold** for key terms, bullet points for lists, numbered lists for steps
-- Be concise but data-backed — cite specific numbers, competitors, or technical details from your work
-- Structure your response with clear sections if the answer is complex
-- Push back with evidence if you disagree. Never be sycophantic.
+CRITICAL RULES:
+- Do NOT suggest starting a pipeline, saying "go", or generating new briefs
+- Do NOT act as if you're still in the planning phase
+- Your work output is shown below — answer questions ABOUT IT
+- Summarize, explain, defend, or refine your work when asked
+- Use markdown formatting: **bold** for key terms, bullet points, numbered lists
+- Be concise, data-backed, and professional
 - Keep responses under 200 words unless asked for detail
-- Reference your actual output when answering questions about your work
+- Reference specific data from your output (competitor names, metrics, features, etc.)
 
-${agentOutput ? `Your current work output:\n${agentOutput.substring(0, 3000)}` : ''}
-${context ? `Company context:\n${context}` : ''}`;
+${agentOutput ? `YOUR COMPLETED WORK:\n${agentOutput.substring(0, 3000)}` : 'No output yet — work is still in progress.'}
+${context ? `COMPANY CONTEXT:\n${context}` : ''}`;
 
     const { text } = await generateText({
       model: google('gemini-3-flash-preview'),
