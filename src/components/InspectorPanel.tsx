@@ -185,6 +185,7 @@ export default function InspectorPanel({
 }: InspectorPanelProps) {
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [briefExpanded, setBriefExpanded] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const outputScrollRef = useRef<HTMLDivElement>(null);
 
@@ -307,8 +308,11 @@ export default function InspectorPanel({
         {/* --- Output section --- */}
         {output ? (
           <div>
-            {/* Section label */}
-            <div className="flex items-center gap-2 mb-3">
+            {/* Section label — clickable to collapse for CEO */}
+            <div
+              className={`flex items-center gap-2 mb-3 ${agent.id === 'ceo' && chatHistory.length > 0 ? 'cursor-pointer' : ''}`}
+              onClick={() => agent.id === 'ceo' && chatHistory.length > 0 && setBriefExpanded(!briefExpanded)}
+            >
               <div
                 className="w-1 h-4 rounded-full"
                 style={{ backgroundColor: agent.color }}
@@ -317,18 +321,28 @@ export default function InspectorPanel({
                 className="text-[11px] font-bold uppercase tracking-[0.12em]"
                 style={{ color: agent.color }}
               >
-                Agent Output
+                {agent.id === 'ceo' && chatHistory.length > 0 ? 'Company Brief' : 'Agent Output'}
+              {agent.id === 'ceo' && chatHistory.length > 0 && (
+                <span className="ml-2 text-[9px] font-normal" style={{ color: '#9CA3AF' }}>
+                  {briefExpanded ? '(click to collapse)' : '(click to expand)'}
+                </span>
+              )}
               </h3>
             </div>
 
-            {/* Output card with left accent border */}
+            {/* Output card — collapsible for CEO when chatting */}
             <div
-              className="rounded-lg overflow-hidden transition-colors duration-200"
+              className="rounded-lg overflow-hidden transition-all duration-300"
               style={{
                 background: '#F8F9FB',
                 border: '1px solid #E8EAF0',
                 borderLeftWidth: '3px',
                 borderLeftColor: agent.color,
+                maxHeight: agent.id === 'ceo' && chatHistory.length > 0 && !briefExpanded ? '0px' : '2000px',
+                opacity: agent.id === 'ceo' && chatHistory.length > 0 && !briefExpanded ? 0 : 1,
+                marginBottom: agent.id === 'ceo' && chatHistory.length > 0 && !briefExpanded ? '0' : undefined,
+                padding: agent.id === 'ceo' && chatHistory.length > 0 && !briefExpanded ? '0' : undefined,
+                overflow: 'hidden',
               }}
             >
               <div className="p-4 text-[13px] leading-[1.75]" style={{ color: '#374151' }}>

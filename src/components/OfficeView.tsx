@@ -101,44 +101,20 @@ export default function OfficeView({ agents, statuses, positions, speeches, sele
           if (status === 'idle' || status === 'waiting') return null;
           const isWorking = status === 'working';
           return (
-            <g key={agent.id}>
-              <line
-                x1={`${from.x}%`}
-                y1={`${from.y + 5}%`}
-                x2={`${to.x}%`}
-                y2={`${to.y + 5}%`}
-                stroke={`url(#line-grad-${agent.id})`}
-                strokeWidth={isWorking ? 1.5 : 1}
-                strokeDasharray="4 8"
-                strokeLinecap="round"
-                opacity={isWorking ? 0.7 : 0.2}
-                filter={isWorking ? 'url(#line-glow)' : undefined}
-                style={isWorking ? { animation: 'flowDash 1s linear infinite' } : undefined}
-              />
-              {isWorking && (
-                <>
-                  <circle r="3" fill={agent.color} opacity={0.8}>
-                    <animateMotion
-                      dur="2s"
-                      repeatCount="indefinite"
-                      path={`M${from.x},${from.y + 5} L${to.x},${to.y + 5}`}
-                      keyPoints="0;1"
-                      keyTimes="0;1"
-                    />
-                  </circle>
-                  <circle r="3" fill={agent.color} opacity={0.4}>
-                    <animateMotion
-                      dur="2s"
-                      repeatCount="indefinite"
-                      path={`M${from.x},${from.y + 5} L${to.x},${to.y + 5}`}
-                      keyPoints="0;1"
-                      keyTimes="0;1"
-                      begin="0.7s"
-                    />
-                  </circle>
-                </>
-              )}
-            </g>
+            <line
+              key={agent.id}
+              x1={`${from.x}%`}
+              y1={`${from.y + 5}%`}
+              x2={`${to.x}%`}
+              y2={`${to.y + 5}%`}
+              stroke={agent.color}
+              strokeWidth={isWorking ? 2 : 1}
+              strokeDasharray={isWorking ? '6 4' : '4 8'}
+              strokeLinecap="round"
+              opacity={isWorking ? 0.5 : 0.15}
+              filter={isWorking ? 'url(#line-glow)' : undefined}
+              style={isWorking ? { animation: 'flowDash 0.8s linear infinite' } : undefined}
+            />
           );
         })}
       </svg>
