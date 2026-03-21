@@ -72,83 +72,83 @@ function getAgentDef(agentId: AgentId) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Markdown components (neutral / file-preview style)                 */
+/*  Markdown components (light theme / file-preview style)             */
 /* ------------------------------------------------------------------ */
 
 function buildPreviewMarkdownComponents() {
-  const accent = '#a78bfa';
+  const accent = '#7c3aed';
   return {
     h1: ({ children, ...props }: ComponentPropsWithoutRef<'h1'>) => (
-      <h1 className="text-lg font-bold mt-4 mb-2 pb-1.5" style={{ color: '#e2e2f0', borderBottom: '1px solid #1e1e2e' }} {...props}>{children}</h1>
+      <h1 className="text-lg font-bold mt-4 mb-2 pb-1.5" style={{ color: '#111827', borderBottom: '1px solid #E8EAF0' }} {...props}>{children}</h1>
     ),
     h2: ({ children, ...props }: ComponentPropsWithoutRef<'h2'>) => (
-      <h2 className="text-base font-bold mt-3.5 mb-1.5" style={{ color: '#e2e2f0' }} {...props}>{children}</h2>
+      <h2 className="text-base font-bold mt-3.5 mb-1.5" style={{ color: '#111827' }} {...props}>{children}</h2>
     ),
     h3: ({ children, ...props }: ComponentPropsWithoutRef<'h3'>) => (
-      <h3 className="text-sm font-semibold mt-3 mb-1" style={{ color: '#ccc' }} {...props}>{children}</h3>
+      <h3 className="text-sm font-semibold mt-3 mb-1" style={{ color: '#374151' }} {...props}>{children}</h3>
     ),
     p: ({ children, ...props }: ComponentPropsWithoutRef<'p'>) => (
-      <p className="mb-2.5 text-[13px] leading-[1.75] text-[#bbb]" {...props}>{children}</p>
+      <p className="mb-2.5 text-[13px] leading-[1.75]" style={{ color: '#374151' }} {...props}>{children}</p>
     ),
     ul: ({ children, ...props }: ComponentPropsWithoutRef<'ul'>) => (
-      <ul className="mb-2.5 ml-4 space-y-1 list-disc marker:text-[#555]" {...props}>{children}</ul>
+      <ul className="mb-2.5 ml-4 space-y-1 list-disc marker:text-[#9CA3AF]" {...props}>{children}</ul>
     ),
     ol: ({ children, ...props }: ComponentPropsWithoutRef<'ol'>) => (
-      <ol className="mb-2.5 ml-4 space-y-1 list-decimal marker:text-[#555]" {...props}>{children}</ol>
+      <ol className="mb-2.5 ml-4 space-y-1 list-decimal marker:text-[#9CA3AF]" {...props}>{children}</ol>
     ),
     li: ({ children, ...props }: ComponentPropsWithoutRef<'li'>) => (
-      <li className="text-[13px] text-[#bbb] leading-[1.7] pl-0.5" {...props}>{children}</li>
+      <li className="text-[13px] leading-[1.7] pl-0.5" style={{ color: '#374151' }} {...props}>{children}</li>
     ),
     a: ({ children, href, ...props }: ComponentPropsWithoutRef<'a'>) => (
       <a href={href} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2" style={{ color: accent }} {...props}>{children}</a>
     ),
     strong: ({ children, ...props }: ComponentPropsWithoutRef<'strong'>) => (
-      <strong className="font-semibold text-[#e2e2f0]" {...props}>{children}</strong>
+      <strong className="font-semibold" style={{ color: '#111827' }} {...props}>{children}</strong>
     ),
     blockquote: ({ children, ...props }: ComponentPropsWithoutRef<'blockquote'>) => (
-      <blockquote className="my-2.5 pl-3 py-1 text-[12px] italic text-[#888] rounded-r-md" style={{ borderLeft: '3px solid #333', background: '#ffffff06' }} {...props}>{children}</blockquote>
+      <blockquote className="my-2.5 pl-3 py-1 text-[12px] italic rounded-r-md" style={{ color: '#6B7280', borderLeft: '3px solid #E8EAF0', background: '#F8F9FB' }} {...props}>{children}</blockquote>
     ),
     hr: (props: ComponentPropsWithoutRef<'hr'>) => (
-      <hr className="my-3 border-0 h-px bg-[#1e1e2e]" {...props} />
+      <hr className="my-3 border-0 h-px" style={{ background: '#E8EAF0' }} {...props} />
     ),
     code: ({ children, className, ...props }: ComponentPropsWithoutRef<'code'>) => {
       const isBlock = typeof className === 'string' && className.startsWith('language-');
       if (isBlock) {
         const lang = className?.replace('language-', '') ?? '';
         return (
-          <div className="my-2.5 rounded-lg overflow-hidden" style={{ border: '1px solid #1e1e2e' }}>
+          <div className="my-2.5 rounded-lg overflow-hidden" style={{ border: '1px solid #E8EAF0' }}>
             {lang && (
-              <div className="px-3 py-1 text-[10px] font-mono uppercase tracking-wider" style={{ background: '#ffffff08', color: '#666', borderBottom: '1px solid #1e1e2e' }}>
+              <div className="px-3 py-1 text-[10px] font-mono uppercase tracking-wider" style={{ background: '#F3F4F6', color: '#9CA3AF', borderBottom: '1px solid #E8EAF0' }}>
                 {lang}
               </div>
             )}
-            <pre className="p-3 overflow-x-auto text-[12px] leading-[1.7] m-0" style={{ background: '#08080e' }}>
-              <code className="font-mono text-[#c8c8d8]" {...props}>{children}</code>
+            <pre className="p-3 overflow-x-auto text-[12px] leading-[1.7] m-0" style={{ background: '#F8F9FB' }}>
+              <code className="font-mono" style={{ color: '#374151' }} {...props}>{children}</code>
             </pre>
           </div>
         );
       }
       return (
-        <code className="px-1.5 py-0.5 rounded text-[12px] font-mono" style={{ background: '#ffffff0a', color: '#c8c8d8', border: '1px solid #1e1e2e' }} {...props}>{children}</code>
+        <code className="px-1.5 py-0.5 rounded text-[12px] font-mono" style={{ background: '#F3F4F6', color: '#374151', border: '1px solid #E8EAF0' }} {...props}>{children}</code>
       );
     },
     pre: ({ children }: ComponentPropsWithoutRef<'pre'>) => <>{children}</>,
     table: ({ children, ...props }: ComponentPropsWithoutRef<'table'>) => (
-      <div className="my-2.5 overflow-x-auto rounded-lg" style={{ border: '1px solid #1e1e2e' }}>
+      <div className="my-2.5 overflow-x-auto rounded-lg" style={{ border: '1px solid #E8EAF0' }}>
         <table className="w-full text-[12px] border-collapse" {...props}>{children}</table>
       </div>
     ),
     thead: ({ children, ...props }: ComponentPropsWithoutRef<'thead'>) => (
-      <thead style={{ background: '#ffffff08' }} {...props}>{children}</thead>
+      <thead style={{ background: '#F3F4F6' }} {...props}>{children}</thead>
     ),
     th: ({ children, ...props }: ComponentPropsWithoutRef<'th'>) => (
-      <th className="text-left px-3 py-2 font-semibold text-[11px] uppercase tracking-wider text-[#999]" style={{ borderBottom: '1px solid #1e1e2e' }} {...props}>{children}</th>
+      <th className="text-left px-3 py-2 font-semibold text-[11px] uppercase tracking-wider" style={{ color: '#6B7280', borderBottom: '1px solid #E8EAF0' }} {...props}>{children}</th>
     ),
     tr: ({ children, ...props }: ComponentPropsWithoutRef<'tr'>) => (
-      <tr className="even:bg-[#ffffff04] hover:bg-[#ffffff06]" style={{ borderBottom: '1px solid #141420' }} {...props}>{children}</tr>
+      <tr className="even:bg-[#F8F9FB] hover:bg-[#F3F4F6]" style={{ borderBottom: '1px solid #F3F4F6' }} {...props}>{children}</tr>
     ),
     td: ({ children, ...props }: ComponentPropsWithoutRef<'td'>) => (
-      <td className="px-3 py-2 text-[#bbb]" {...props}>{children}</td>
+      <td className="px-3 py-2" style={{ color: '#374151' }} {...props}>{children}</td>
     ),
   };
 }
@@ -191,15 +191,17 @@ function FileRow({
     <div
       className="rounded-lg overflow-hidden transition-all duration-200"
       style={{
-        background: isExpanded ? '#10101a' : '#0c0c14',
-        border: `1px solid ${isExpanded ? '#2a2a3a' : '#1e1e2e'}`,
+        background: isExpanded ? '#F8F9FB' : '#FFFFFF',
+        border: `1px solid ${isExpanded ? '#E8EAF0' : '#F3F4F6'}`,
       }}
     >
       {/* Row header (always visible) */}
       <div
         className="flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 select-none"
-        style={{ background: isExpanded ? '#12121a' : undefined }}
+        style={{ background: isExpanded ? '#F3F4F6' : undefined }}
         onClick={onToggle}
+        onMouseEnter={e => { if (!isExpanded) (e.currentTarget as HTMLElement).style.background = '#F8F9FB'; }}
+        onMouseLeave={e => { if (!isExpanded) (e.currentTarget as HTMLElement).style.background = ''; }}
       >
         {/* Expand chevron */}
         <svg
@@ -210,7 +212,7 @@ function FileRow({
           className="shrink-0 transition-transform duration-200"
           style={{
             transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
-            color: '#555',
+            color: '#9CA3AF',
           }}
         >
           <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -218,7 +220,7 @@ function FileRow({
 
         {/* Icon + filename */}
         <span className="text-base shrink-0">{artifact.icon}</span>
-        <span className="text-[13px] font-medium text-[#e2e2f0] truncate flex-1">
+        <span className="text-[13px] font-medium truncate flex-1" style={{ color: '#111827' }}>
           {artifact.filename}
         </span>
 
@@ -228,13 +230,13 @@ function FileRow({
             className="block w-2 h-2 rounded-full shrink-0"
             style={{ backgroundColor: artifact.agentColor }}
           />
-          <span className="text-[11px] text-[#666] hidden sm:inline">
+          <span className="text-[11px] hidden sm:inline" style={{ color: artifact.agentColor }}>
             {artifact.agentName.split(' ')[0]}
           </span>
         </div>
 
         {/* File size */}
-        <span className="text-[11px] font-mono text-[#555] w-16 text-right shrink-0">
+        <span className="text-[11px] font-mono w-16 text-right shrink-0" style={{ color: '#9CA3AF' }}>
           {fileSize}
         </span>
 
@@ -243,8 +245,8 @@ function FileRow({
           className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0"
           style={
             isReady
-              ? { background: '#22c55e15', color: '#22c55e', border: '1px solid #22c55e30' }
-              : { background: '#ffffff08', color: '#555', border: '1px solid #ffffff10' }
+              ? { background: '#ECFDF5', color: '#059669', border: '1px solid #A7F3D0' }
+              : { background: '#F3F4F6', color: '#9CA3AF', border: '1px solid #E8EAF0' }
           }
         >
           {isReady ? 'Ready' : 'Pending'}
@@ -254,8 +256,8 @@ function FileRow({
         <button
           onClick={handleDownload}
           disabled={!isReady}
-          className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 transition-all duration-150 cursor-pointer disabled:opacity-20 disabled:cursor-default hover:bg-[#1a1a28]"
-          style={{ background: 'transparent', border: 'none', color: '#888' }}
+          className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 transition-all duration-150 cursor-pointer disabled:opacity-20 disabled:cursor-default hover:bg-[#F3F4F6]"
+          style={{ background: 'transparent', border: 'none', color: '#6B7280' }}
           aria-label={`Download ${artifact.filename}`}
           title="Download"
         >
@@ -270,7 +272,7 @@ function FileRow({
       {isExpanded && isReady && artifact.content && (
         <div
           className="px-4 pb-4"
-          style={{ borderTop: '1px solid #1e1e2e' }}
+          style={{ borderTop: '1px solid #E8EAF0' }}
         >
           {artifact.isBinary ? (
             /* Logo image preview */
@@ -280,7 +282,7 @@ function FileRow({
                 src={`data:${artifact.mimeType};base64,${artifact.content}`}
                 alt={artifact.filename}
                 className="max-w-[200px] max-h-[200px] rounded-lg"
-                style={{ border: '1px solid #1e1e2e' }}
+                style={{ border: '1px solid #E8EAF0' }}
               />
             </div>
           ) : (
@@ -289,7 +291,7 @@ function FileRow({
               className="pt-4 max-h-[400px] overflow-y-auto pr-2"
               style={{ scrollbarGutter: 'stable' }}
             >
-              <div className="prose prose-invert prose-sm max-w-none">
+              <div className="prose prose-sm max-w-none">
                 <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
                   {artifact.content}
                 </ReactMarkdown>
@@ -301,22 +303,22 @@ function FileRow({
 
       {/* Expanded but pending */}
       {isExpanded && !isReady && (
-        <div className="px-4 pb-4" style={{ borderTop: '1px solid #1e1e2e' }}>
+        <div className="px-4 pb-4" style={{ borderTop: '1px solid #E8EAF0' }}>
           <div className="pt-4 flex flex-col items-center py-8 text-center">
             <div
               className="w-10 h-10 rounded-full mb-3 flex items-center justify-center"
-              style={{ background: '#ffffff06', border: '1px solid #1e1e2e' }}
+              style={{ background: '#F8F9FB', border: '1px solid #E8EAF0' }}
             >
               <div
                 className="w-4 h-4 rounded-full"
                 style={{
-                  border: '2px solid #333',
+                  border: '2px solid #E8EAF0',
                   borderTopColor: artifact.agentColor,
                   animation: 'artifact-spin 0.8s linear infinite',
                 }}
               />
             </div>
-            <span className="text-[12px] text-[#555]">
+            <span className="text-[12px]" style={{ color: '#9CA3AF' }}>
               Waiting for {artifact.agentName.split(' ')[0]} to finish...
             </span>
           </div>
@@ -455,7 +457,7 @@ export default function ArtifactPanel({
       {/* Backdrop */}
       <div
         className="fixed inset-0 z-50"
-        style={{ background: 'rgba(0,0,0,0.6)' }}
+        style={{ background: 'rgba(0,0,0,0.3)' }}
         onClick={onClose}
       />
 
@@ -464,22 +466,22 @@ export default function ArtifactPanel({
         className="fixed top-0 right-0 z-50 h-full flex flex-col"
         style={{
           width: 'min(520px, 90vw)',
-          background: '#0c0c14',
-          borderLeft: '1px solid #1e1e2e',
-          boxShadow: '-8px 0 32px rgba(0,0,0,0.5)',
+          background: '#FFFFFF',
+          borderLeft: '1px solid #E8EAF0',
+          boxShadow: '-8px 0 32px rgba(0,0,0,0.08)',
           animation: 'artifact-slide-in 0.3s cubic-bezier(0.16,1,0.3,1)',
         }}
       >
         {/* Header */}
         <div
           className="flex items-center justify-between px-5 py-4 shrink-0"
-          style={{ borderBottom: '1px solid #1e1e2e' }}
+          style={{ borderBottom: '1px solid #E8EAF0' }}
         >
           <div className="flex items-center gap-3">
             {/* Folder icon */}
             <div
               className="w-9 h-9 rounded-lg flex items-center justify-center"
-              style={{ background: '#ffffff08', border: '1px solid #1e1e2e' }}
+              style={{ background: '#FEF3C7', border: '1px solid #FDE68A' }}
             >
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <path
@@ -493,8 +495,8 @@ export default function ArtifactPanel({
               </svg>
             </div>
             <div>
-              <h2 className="text-[15px] font-bold text-[#e2e2f0]">Artifacts</h2>
-              <p className="text-[11px] text-[#555]">
+              <h2 className="text-[15px] font-bold" style={{ color: '#111827' }}>Artifacts</h2>
+              <p className="text-[11px]" style={{ color: '#9CA3AF' }}>
                 {readyCount}/{totalCount} files &middot; {formatFileSize(totalBytes)}
               </p>
             </div>
@@ -503,8 +505,8 @@ export default function ArtifactPanel({
           {/* Close button */}
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-md flex items-center justify-center transition-colors duration-150 cursor-pointer hover:bg-[#1a1a28]"
-            style={{ background: 'transparent', border: 'none', color: '#666' }}
+            className="w-8 h-8 rounded-md flex items-center justify-center transition-colors duration-150 cursor-pointer hover:bg-[#F3F4F6]"
+            style={{ background: 'transparent', border: 'none', color: '#9CA3AF' }}
             aria-label="Close artifacts panel"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -517,7 +519,7 @@ export default function ArtifactPanel({
         {(demoUrl || webUrl) && (
           <div
             className="flex items-center gap-3 px-5 py-3 shrink-0"
-            style={{ borderBottom: '1px solid #1e1e2e', background: '#0a0a12' }}
+            style={{ borderBottom: '1px solid #E8EAF0', background: '#F8F9FB' }}
           >
             {demoUrl && (
               <a
@@ -555,16 +557,16 @@ export default function ArtifactPanel({
         {/* Progress bar */}
         <div className="px-5 pt-4 pb-2 shrink-0">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#555]">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: '#9CA3AF' }}>
               Pipeline Progress
             </span>
-            <span className="text-[11px] font-mono text-[#555]">
+            <span className="text-[11px] font-mono" style={{ color: '#9CA3AF' }}>
               {readyCount}/{totalCount}
             </span>
           </div>
           <div
             className="w-full h-1.5 rounded-full overflow-hidden"
-            style={{ background: '#1e1e2e' }}
+            style={{ background: '#E8EAF0' }}
           >
             <div
               className="h-full rounded-full transition-all duration-700 ease-out"
@@ -597,9 +599,9 @@ export default function ArtifactPanel({
         {/* Bottom bar */}
         <div
           className="flex items-center justify-between px-5 py-4 shrink-0"
-          style={{ borderTop: '1px solid #1e1e2e', background: '#0a0a12' }}
+          style={{ borderTop: '1px solid #E8EAF0', background: '#F8F9FB' }}
         >
-          <span className="text-[11px] text-[#444]">
+          <span className="text-[11px]" style={{ color: '#9CA3AF' }}>
             {readyCount === totalCount && readyCount > 0
               ? 'All artifacts ready'
               : `${totalCount - readyCount} artifact${totalCount - readyCount !== 1 ? 's' : ''} pending`}
@@ -609,8 +611,8 @@ export default function ArtifactPanel({
             disabled={readyCount === 0}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 cursor-pointer disabled:opacity-30 disabled:cursor-default"
             style={{
-              background: readyCount > 0 ? 'linear-gradient(135deg, #f59e0b, #ef4444)' : '#1a1a28',
-              color: readyCount > 0 ? '#fff' : '#555',
+              background: readyCount > 0 ? 'linear-gradient(135deg, #f59e0b, #ef4444)' : '#F3F4F6',
+              color: readyCount > 0 ? '#fff' : '#9CA3AF',
               border: 'none',
               boxShadow: readyCount > 0 ? '0 2px 12px rgba(245,158,11,0.25)' : 'none',
             }}

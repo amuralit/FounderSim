@@ -20,29 +20,21 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
   };
 
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center" style={{ background: '#0f1117' }}>
-      {/* Subtle gradient orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-[0.04]"
-          style={{ background: 'radial-gradient(circle, #f59e0b, transparent 70%)' }} />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full opacity-[0.03]"
-          style={{ background: 'radial-gradient(circle, #8b5cf6, transparent 70%)' }} />
-      </div>
-
+    <div className="absolute inset-0 z-20 flex items-center justify-center" style={{ background: 'rgba(248,249,251,0.95)', backdropFilter: 'blur(40px)' }}>
       <div className="relative z-10 text-center max-w-[600px] w-full px-6">
         {/* Logo mark */}
         <div className="mb-8 flex justify-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold"
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold text-white"
               style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}>
               F
             </div>
-            <span className="text-2xl font-bold tracking-tight text-white">FounderSim</span>
+            <span className="text-2xl font-bold tracking-tight" style={{ color: '#111827' }}>FounderSim</span>
           </div>
         </div>
 
         {/* Headline */}
-        <h1 className="text-[42px] font-bold leading-tight mb-4 tracking-tight text-white">
+        <h1 className="text-[42px] font-bold leading-tight mb-4 tracking-tight" style={{ color: '#111827' }}>
           What company should
           <br />
           <span style={{
@@ -54,7 +46,7 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
           </span>
         </h1>
 
-        <p className="text-base mb-10 leading-relaxed" style={{ color: '#999' }}>
+        <p className="text-base mb-10 leading-relaxed" style={{ color: '#6B7280' }}>
           Describe your idea in one sentence. Five AI agents will
           <br className="hidden sm:block" />
           research, design, build, and deploy it — while you watch.
@@ -68,17 +60,18 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
             onKeyDown={e => e.key === 'Enter' && handleSubmit()}
             placeholder="e.g. A tool that helps freelancers track invoices and get paid faster"
             autoFocus
-            className="w-full h-14 pl-5 pr-36 rounded-2xl text-[15px] outline-none transition-all duration-300 text-white placeholder:text-[#555]"
+            className="w-full h-14 pl-5 pr-36 rounded-2xl text-[15px] outline-none transition-all duration-300"
             style={{
-              background: '#1a1f2e',
-              border: '1px solid #2a3040',
+              background: '#FFFFFF',
+              border: '1px solid #E8EAF0',
+              color: '#111827',
             }}
             onFocus={e => {
-              e.currentTarget.style.borderColor = '#f59e0b44';
-              e.currentTarget.style.boxShadow = '0 0 0 1px #f59e0b22, 0 8px 32px rgba(0,0,0,0.3)';
+              e.currentTarget.style.borderColor = '#D1D5DB';
+              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59,130,246,0.1), 0 4px 16px rgba(0,0,0,0.06)';
             }}
             onBlur={e => {
-              e.currentTarget.style.borderColor = '#222';
+              e.currentTarget.style.borderColor = '#E8EAF0';
               e.currentTarget.style.boxShadow = 'none';
             }}
           />
@@ -104,17 +97,17 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
               onClick={() => setMission(ex)}
               className="px-4 py-2 rounded-full text-xs cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
               style={{
-                background: 'transparent',
-                border: '1px solid #2a3040',
-                color: '#8b92a0',
+                background: '#F3F4F6',
+                border: '1px solid #E8EAF0',
+                color: '#6B7280',
               }}
               onMouseEnter={e => {
-                (e.target as HTMLElement).style.borderColor = '#3a4555';
-                (e.target as HTMLElement).style.color = '#c8cdd5';
+                (e.target as HTMLElement).style.borderColor = '#D1D5DB';
+                (e.target as HTMLElement).style.color = '#374151';
               }}
               onMouseLeave={e => {
-                (e.target as HTMLElement).style.borderColor = '#2a3040';
-                (e.target as HTMLElement).style.color = '#8b92a0';
+                (e.target as HTMLElement).style.borderColor = '#E8EAF0';
+                (e.target as HTMLElement).style.color = '#6B7280';
               }}
             >
               {ex}
@@ -124,10 +117,10 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
 
         {/* Agent dots footer */}
         <div className="flex items-center justify-center gap-2">
-          <span className="text-[11px] tracking-wide" style={{ color: '#444' }}>Powered by 5 AI Agents</span>
+          <span className="text-[11px] tracking-wide" style={{ color: '#9CA3AF' }}>Powered by 5 AI Agents</span>
           <div className="flex gap-1">
             {['#f59e0b', '#3b82f6', '#8b5cf6', '#06b6d4', '#10b981'].map(c => (
-              <div key={c} className="w-1.5 h-1.5 rounded-full" style={{ background: c, opacity: 0.6 }} />
+              <div key={c} className="w-1.5 h-1.5 rounded-full" style={{ background: c, opacity: 0.8 }} />
             ))}
           </div>
         </div>

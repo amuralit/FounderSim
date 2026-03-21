@@ -510,22 +510,22 @@ export default function FounderSim() {
   const showProgressBar = phase === 'pipeline' || phase === 'delivered';
 
   return (
-    <div className="w-full h-screen flex flex-col overflow-hidden" style={{ background: '#0f1117' }}>
+    <div className="w-full h-screen flex flex-col overflow-hidden" style={{ background: '#F8F9FB' }}>
       {/* Header */}
       <header
         className="shrink-0"
-        style={{ background: '#141820' }}
+        style={{ background: '#FFFFFF', borderBottom: '1px solid #E8EAF0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
       >
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center gap-3">
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold text-white"
               style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}
             >
               F
             </div>
-            <span className="font-bold text-lg tracking-tight">FounderSim</span>
-            <span className="text-xs ml-1" style={{ color: '#666' }}>from idea to investor-ready</span>
+            <span className="font-bold text-lg tracking-tight" style={{ color: '#111827' }}>FounderSim</span>
+            <span className="text-xs ml-1" style={{ color: '#9CA3AF' }}>from idea to investor-ready</span>
 
             {/* Phase status pill */}
             {phasePill && (
@@ -562,7 +562,7 @@ export default function FounderSim() {
               <button
                 onClick={() => setShowArtifacts(true)}
                 className="px-3 py-1.5 rounded-lg text-xs cursor-pointer transition-all"
-                style={{ background: '#ffffff06', border: '1px solid #ffffff10', color: '#aaa' }}
+                style={{ background: '#F3F4F6', border: '1px solid #E8EAF0', color: '#6B7280' }}
               >
                 Artifacts
               </button>
@@ -588,17 +588,9 @@ export default function FounderSim() {
           </div>
         </div>
 
-        {/* Gradient separator line */}
-        <div
-          className="h-px w-full"
-          style={{
-            background: 'linear-gradient(90deg, transparent 0%, #f59e0b40 25%, #ef444440 50%, #10b98140 75%, transparent 100%)',
-          }}
-        />
-
         {/* Agent progress bar */}
         {showProgressBar && (
-          <div className="flex w-full h-1 gap-px" style={{ background: '#0f1117' }}>
+          <div className="flex w-full h-1 gap-px" style={{ background: '#F8F9FB' }}>
             {agentProgress.map(seg => (
               <div
                 key={seg.id}
@@ -608,7 +600,7 @@ export default function FounderSim() {
                     ? seg.color
                     : seg.working
                       ? `${seg.color}50`
-                      : '#1a1a28',
+                      : '#F3F4F6',
                   ...(seg.working ? { animation: 'progress-pulse 2s ease-in-out infinite' } : {}),
                 }}
               />
@@ -652,9 +644,9 @@ export default function FounderSim() {
             <div
               className="shrink-0 px-5 py-2.5 flex items-center gap-2 text-xs"
               style={{
-                borderTop: '1px solid var(--border)',
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-secondary)',
+                borderTop: '1px solid #E8EAF0',
+                background: '#FFFFFF',
+                color: '#9CA3AF',
               }}
             >
               {phase === 'pipeline' && activeAgent && (

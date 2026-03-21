@@ -35,22 +35,22 @@ export default function PitchDeck({ slides, onClose }: PitchDeckProps) {
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)' }}
+      style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(10px)' }}
       onClick={onClose}
     >
       <div
         className="w-[80%] max-w-[720px] rounded-2xl overflow-hidden flex flex-col"
         style={{
           aspectRatio: '16/9',
-          background: '#12121a',
-          border: '1px solid #2a2a3a',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          background: '#FFFFFF',
+          border: '1px solid #E8EAF0',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.12)',
         }}
         onClick={e => e.stopPropagation()}
       >
         <div
           className="flex-1 flex items-center justify-center p-12 text-center"
-          style={{ background: slide.bg || '#12121a' }}
+          style={{ background: slide.bg || '#FFFFFF' }}
         >
           <div>
             <h2
@@ -65,12 +65,12 @@ export default function PitchDeck({ slides, onClose }: PitchDeckProps) {
               {slide.title}
             </h2>
             {slide.subtitle && (
-              <p className="text-lg" style={{ color: '#888' }}>{slide.subtitle}</p>
+              <p className="text-lg" style={{ color: '#6B7280' }}>{slide.subtitle}</p>
             )}
             {slide.body && (
               <p
                 className="text-[15px] leading-[1.8] max-w-[500px] mx-auto text-left whitespace-pre-line"
-                style={{ color: '#bbb' }}
+                style={{ color: '#374151' }}
               >
                 {slide.body}
               </p>
@@ -78,20 +78,20 @@ export default function PitchDeck({ slides, onClose }: PitchDeckProps) {
           </div>
         </div>
 
-        <div className="flex justify-between items-center px-5 py-3" style={{ borderTop: '1px solid #1e1e2e' }}>
+        <div className="flex justify-between items-center px-5 py-3" style={{ borderTop: '1px solid #E8EAF0' }}>
           <button
             onClick={prev}
             disabled={current === 0}
             className="px-4 py-1.5 rounded-md text-[13px] cursor-pointer"
             style={{
-              background: '#1a1a28',
-              border: '1px solid #333',
-              color: current === 0 ? '#333' : '#ccc',
+              background: '#F3F4F6',
+              border: '1px solid #E8EAF0',
+              color: current === 0 ? '#D1D5DB' : '#6B7280',
             }}
           >
             ← Prev
           </button>
-          <span className="text-xs" style={{ color: '#666' }}>
+          <span className="text-xs" style={{ color: '#9CA3AF' }}>
             {current + 1} / {slides.length}
           </span>
           <button
@@ -99,8 +99,9 @@ export default function PitchDeck({ slides, onClose }: PitchDeckProps) {
             disabled={current === slides.length - 1}
             className="px-4 py-1.5 rounded-md text-[13px] font-semibold text-white cursor-pointer"
             style={{
-              background: current === slides.length - 1 ? '#1a1a28' : '#f59e0b',
+              background: current === slides.length - 1 ? '#F3F4F6' : '#f59e0b',
               border: 'none',
+              color: current === slides.length - 1 ? '#D1D5DB' : '#fff',
             }}
           >
             Next →

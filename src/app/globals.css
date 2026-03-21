@@ -1,14 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --bg-primary: #0f1117;
-  --bg-secondary: #151921;
-  --bg-card: #1a1f2e;
-  --border: #2a3040;
-  --border-hover: #3a4555;
-  --text-primary: #f0f2f5;
-  --text-secondary: #9ca3b0;
-  --text-muted: #6b7280;
+  --bg-primary: #F8F9FB;
+  --bg-secondary: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --border: #E8EAF0;
+  --border-hover: #D1D5DB;
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.08);
 }
 
 body {
@@ -18,7 +21,7 @@ body {
 }
 
 ::selection {
-  background: #f59e0b33;
+  background: #f59e0b22;
 }
 
 ::-webkit-scrollbar {
@@ -30,12 +33,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: #D1D5DB;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #9CA3AF;
 }
 
 /* ── Global Animations ── */
@@ -69,7 +72,7 @@ body {
   position: relative;
   width: 100%;
   height: 100%;
-  background: #0d1017;
+  background: #F8F9FB;
   overflow: hidden;
 }
 
@@ -78,24 +81,11 @@ body {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
   background-size: 40px 40px;
   mask-image: radial-gradient(ellipse at 50% 50%, black 40%, transparent 75%);
   pointer-events: none;
-}
-
-.office-root::after {
-  content: '';
-  position: absolute;
-  top: 30%;
-  left: 50%;
-  width: 60%;
-  height: 40%;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(ellipse, rgba(245,158,11,0.03) 0%, transparent 70%);
-  pointer-events: none;
-  animation: ambientShift 8s ease-in-out infinite alternate;
 }
 
 @keyframes ambientShift {
@@ -114,27 +104,28 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 16px;
-  background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
-  border: 1px solid rgba(255,255,255,0.07);
+  background: #FFFFFF;
+  border: 1px solid #E8EAF0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .office-zone:hover .office-zone-inner {
-  background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025));
-  border-color: rgba(255,255,255,0.1);
+  border-color: #D1D5DB;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }
 
 .office-zone--active .office-zone-inner {
   border-color: var(--zone-color-dim);
-  background: linear-gradient(145deg, var(--zone-color-ultra-dim), rgba(255,255,255,0.012));
+  box-shadow: 0 4px 16px var(--zone-color-alpha);
 }
 
 .office-zone--active .office-zone-glow {
-  opacity: 1;
+  opacity: 0.5;
 }
 
 .office-zone--done .office-zone-inner {
-  border-color: rgba(16,185,129,0.12);
+  border-color: rgba(16,185,129,0.3);
 }
 
 .office-zone-glow {
@@ -164,7 +155,7 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #4a5068;
+  color: #9CA3AF;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -174,7 +165,7 @@ body {
 }
 
 .office-zone:hover .office-zone-label {
-  color: #6b7590;
+  color: #6B7280;
 }
 
 .office-zone--active .office-zone-label {
@@ -229,7 +220,7 @@ body {
 }
 
 .agent-avatar-wrap:hover .agent-name {
-  color: #ccc !important;
+  color: #374151 !important;
 }
 
 .agent-ring {
@@ -249,7 +240,7 @@ body {
   top: 2px;
   left: 2px;
   object-fit: cover;
-  background: #1a1f2e;
+  background: #FFFFFF;
 }
 
 @keyframes orbit {

@@ -14,12 +14,12 @@ interface OfficeViewProps {
 }
 
 const ZONE_META: Record<string, { emoji: string; agentColor: string }> = {
-  'ceo-office':   { emoji: '👑', agentColor: '#f59e0b' },
-  'research-lab': { emoji: '🔬', agentColor: '#3b82f6' },
-  'war-room':     { emoji: '🎯', agentColor: '#8b5cf6' },
-  'architecture': { emoji: '🏗', agentColor: '#06b6d4' },
-  'dev-bay':      { emoji: '💻', agentColor: '#10b981' },
-  'deploy-zone':  { emoji: '🚀', agentColor: '#f59e0b' },
+  'ceo-office':   { emoji: '\u{1F451}', agentColor: '#f59e0b' },
+  'research-lab': { emoji: '\u{1F52C}', agentColor: '#3b82f6' },
+  'war-room':     { emoji: '\u{1F3AF}', agentColor: '#8b5cf6' },
+  'architecture': { emoji: '\u{1F3D7}', agentColor: '#06b6d4' },
+  'dev-bay':      { emoji: '\u{1F4BB}', agentColor: '#10b981' },
+  'deploy-zone':  { emoji: '\u{1F680}', agentColor: '#f59e0b' },
 };
 
 function isAgentInZoneWorking(zoneId: string, statuses: Record<AgentId, AgentStatus>): boolean {
@@ -52,10 +52,10 @@ export default function OfficeView({ agents, statuses, positions, speeches, sele
               width: `${zone.w}%`,
               height: `${zone.h}%`,
               '--zone-color': meta.agentColor,
-              '--zone-color-alpha': `${meta.agentColor}08`,
-              '--zone-color-dim': `${meta.agentColor}25`,
+              '--zone-color-alpha': `${meta.agentColor}10`,
+              '--zone-color-dim': `${meta.agentColor}30`,
               '--zone-color-ultra-dim': `${meta.agentColor}06`,
-              '--zone-color-mid': `${meta.agentColor}80`,
+              '--zone-color-mid': `${meta.agentColor}cc`,
             } as React.CSSProperties}
           >
             <div className="office-zone-inner" />

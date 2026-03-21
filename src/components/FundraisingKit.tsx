@@ -59,36 +59,36 @@ export default function FundraisingKit({
     <>
       <div
         className="fixed inset-0 z-50 flex items-center justify-center"
-        style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)' }}
+        style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(10px)' }}
       >
         <div
-          className="w-[90%] max-w-[1000px] h-[80vh] rounded-2xl overflow-hidden flex flex-col"
-          style={{ background: '#0c0c14', border: '1px solid #2a2a3a' }}
+          className="w-[90%] max-w-[1000px] h-[80vh] overflow-hidden flex flex-col"
+          style={{ background: '#FFFFFF', border: '1px solid #E8EAF0', borderRadius: 20, boxShadow: '0 24px 48px rgba(0,0,0,0.12)' }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #1e1e2e' }}>
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #E8EAF0' }}>
             <div className="flex items-center gap-3">
               {logoBase64 && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={`data:image/png;base64,${logoBase64}`} alt="Logo" className="w-8 h-8 rounded" />
               )}
-              <h2 className="text-lg font-bold">Fundraising Kit</h2>
+              <h2 className="text-lg font-bold" style={{ color: '#111827' }}>Fundraising Kit</h2>
             </div>
-            <button onClick={onClose} className="text-xl cursor-pointer" style={{ background: 'none', border: 'none', color: '#666' }}>✕</button>
+            <button onClick={onClose} className="text-xl cursor-pointer" style={{ background: 'none', border: 'none', color: '#9CA3AF' }}>✕</button>
           </div>
 
           {/* Tabs */}
-          <div className="flex px-6 gap-1 pt-2" style={{ borderBottom: '1px solid #1e1e2e' }}>
+          <div className="flex px-6 gap-1 pt-2" style={{ borderBottom: '1px solid #E8EAF0' }}>
             {TABS.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className="px-4 py-2.5 text-xs font-medium rounded-t-lg cursor-pointer transition-colors"
                 style={{
-                  background: activeTab === tab.id ? '#12121a' : 'transparent',
-                  color: activeTab === tab.id ? '#e2e2f0' : '#666',
-                  border: activeTab === tab.id ? '1px solid #1e1e2e' : '1px solid transparent',
-                  borderBottom: activeTab === tab.id ? '1px solid #12121a' : '1px solid transparent',
+                  background: 'transparent',
+                  color: activeTab === tab.id ? '#f59e0b' : '#9CA3AF',
+                  border: 'none',
+                  borderBottom: activeTab === tab.id ? '2px solid #f59e0b' : '2px solid transparent',
                   marginBottom: -1,
                 }}
               >
@@ -104,24 +104,24 @@ export default function FundraisingKit({
                 {demoUrl ? (
                   <div>
                     <div className="text-4xl mb-4">🚀</div>
-                    <h3 className="text-xl font-bold mb-2">Your Product is Live!</h3>
+                    <h3 className="text-xl font-bold mb-2" style={{ color: '#111827' }}>Your Product is Live!</h3>
                     <a href={demoUrl} target="_blank" rel="noopener noreferrer" className="text-[#f59e0b] underline text-lg">{demoUrl}</a>
-                    <div className="mt-6 rounded-xl overflow-hidden" style={{ border: '1px solid #2a2a3a' }}>
+                    <div className="mt-6 rounded-xl overflow-hidden" style={{ border: '1px solid #E8EAF0' }}>
                       <iframe src={demoUrl} className="w-full h-[400px]" title="Live Product" />
                     </div>
                   </div>
                 ) : webUrl ? (
                   <div>
                     <div className="text-4xl mb-4">💻</div>
-                    <h3 className="text-xl font-bold mb-2">Code Generated</h3>
+                    <h3 className="text-xl font-bold mb-2" style={{ color: '#111827' }}>Code Generated</h3>
                     <a href={webUrl} target="_blank" rel="noopener noreferrer" className="text-[#10b981] underline">{webUrl}</a>
-                    <p className="text-sm mt-2" style={{ color: '#888' }}>View and edit the generated code on v0</p>
+                    <p className="text-sm mt-2" style={{ color: '#9CA3AF' }}>View and edit the generated code on v0</p>
                   </div>
                 ) : (
                   <div>
                     <div className="text-4xl mb-4">🔧</div>
-                    <h3 className="text-xl font-bold mb-2">Code Generated</h3>
-                    <p className="text-sm" style={{ color: '#888' }}>Add deploy keys to deploy to Vercel</p>
+                    <h3 className="text-xl font-bold mb-2" style={{ color: '#111827' }}>Code Generated</h3>
+                    <p className="text-sm" style={{ color: '#9CA3AF' }}>Add deploy keys to deploy to Vercel</p>
                   </div>
                 )}
               </div>
@@ -130,7 +130,7 @@ export default function FundraisingKit({
             {activeTab === 'pitch' && (
               <div className="text-center py-10">
                 <div className="text-4xl mb-4">📊</div>
-                <h3 className="text-xl font-bold mb-4">Pitch Deck</h3>
+                <h3 className="text-xl font-bold mb-4" style={{ color: '#111827' }}>Pitch Deck</h3>
                 <button
                   onClick={() => setShowPitchDeck(true)}
                   className="px-6 py-3 rounded-lg font-semibold text-white cursor-pointer"
@@ -143,7 +143,7 @@ export default function FundraisingKit({
                     <div
                       key={i}
                       className="rounded-lg p-3 text-[10px] cursor-pointer"
-                      style={{ background: '#12121a', border: '1px solid #1e1e2e' }}
+                      style={{ background: '#F8F9FB', border: '1px solid #E8EAF0' }}
                       onClick={() => { setShowPitchDeck(true); }}
                     >
                       <div className="font-bold truncate" style={{ color: '#f59e0b' }}>{slide.title}</div>
@@ -154,38 +154,38 @@ export default function FundraisingKit({
             )}
 
             {activeTab === 'research' && (
-              <div className="prose prose-invert prose-sm max-w-none" style={{ color: '#bbb' }}>
+              <div className="prose prose-sm max-w-none" style={{ color: '#374151' }}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{researchOutput || 'Research data not yet available.'}</ReactMarkdown>
               </div>
             )}
 
             {activeTab === 'architecture' && (
-              <div className="prose prose-invert prose-sm max-w-none" style={{ color: '#bbb' }}>
+              <div className="prose prose-sm max-w-none" style={{ color: '#374151' }}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{architectOutput || 'Architecture document not yet available.'}</ReactMarkdown>
               </div>
             )}
 
             {activeTab === 'decisions' && (
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wide mb-4" style={{ color: '#666' }}>Decision Timeline</h3>
+                <h3 className="text-sm font-bold uppercase tracking-wide mb-4" style={{ color: '#9CA3AF' }}>Decision Timeline</h3>
                 {decisions.length === 0 ? (
-                  <p className="text-sm" style={{ color: '#555' }}>No decisions logged yet.</p>
+                  <p className="text-sm" style={{ color: '#9CA3AF' }}>No decisions logged yet.</p>
                 ) : (
                   <div className="space-y-3">
                     {decisions.map((d, i) => (
                       <div
                         key={i}
                         className="flex gap-3 rounded-lg p-3"
-                        style={{ background: '#12121a', border: '1px solid #1e1e2e' }}
+                        style={{ background: '#F8F9FB', border: '1px solid #E8EAF0' }}
                       >
-                        <div className="text-[11px] shrink-0 font-mono" style={{ color: '#555' }}>
+                        <div className="text-[11px] shrink-0 font-mono" style={{ color: '#9CA3AF' }}>
                           {new Date(d.ts).toLocaleTimeString()}
                         </div>
                         <div>
                           <span className="text-xs font-semibold capitalize" style={{ color: '#f59e0b' }}>{d.agent}</span>
-                          <span className="text-xs mx-2" style={{ color: '#444' }}>·</span>
-                          <span className="text-xs" style={{ color: '#888' }}>{d.type}</span>
-                          <div className="text-xs mt-1" style={{ color: '#aaa' }}>{d.desc}</div>
+                          <span className="text-xs mx-2" style={{ color: '#D1D5DB' }}>·</span>
+                          <span className="text-xs" style={{ color: '#9CA3AF' }}>{d.type}</span>
+                          <div className="text-xs mt-1" style={{ color: '#374151' }}>{d.desc}</div>
                         </div>
                       </div>
                     ))}

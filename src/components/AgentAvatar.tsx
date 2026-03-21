@@ -33,17 +33,17 @@ export default function AgentAvatar({ agent, status, position, speech, isSelecte
             bottom: 'calc(100% + 14px)',
             left: '50%',
             transform: 'translateX(-50%)',
-            background: 'rgba(18,18,26,0.95)',
+            background: '#FFFFFF',
             backdropFilter: 'blur(12px)',
-            border: `1px solid ${agent.color}30`,
+            border: `1px solid #E8EAF0`,
             borderRadius: 12,
             padding: '8px 12px',
             fontSize: 11,
             lineHeight: 1.5,
-            color: '#ccc',
+            color: '#374151',
             maxWidth: 200,
             whiteSpace: 'normal' as const,
-            boxShadow: `0 4px 24px rgba(0,0,0,0.4), 0 0 20px ${agent.color}08`,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
             animation: 'bubbleIn 0.3s ease',
             zIndex: 20,
           }}
@@ -59,7 +59,7 @@ export default function AgentAvatar({ agent, status, position, speech, isSelecte
               height: 0,
               borderLeft: '5px solid transparent',
               borderRight: '5px solid transparent',
-              borderTop: `5px solid ${agent.color}30`,
+              borderTop: '5px solid #E8EAF0',
             }}
           />
         </div>
@@ -74,13 +74,13 @@ export default function AgentAvatar({ agent, status, position, speech, isSelecte
             : isDone
               ? `conic-gradient(#10b981, transparent 70%, #10b981)`
               : isSelected
-                ? 'conic-gradient(#fff4, transparent 70%, #fff4)'
-                : '#222',
+                ? 'conic-gradient(#D1D5DB, transparent 70%, #D1D5DB)'
+                : '#E8EAF0',
           boxShadow: isActive
-            ? `0 0 24px ${agent.color}35, 0 0 48px ${agent.color}15`
+            ? `0 0 24px ${agent.color}25`
             : isSelected
-              ? '0 0 20px rgba(255,255,255,0.08)'
-              : '0 2px 8px rgba(0,0,0,0.3)',
+              ? '0 0 15px rgba(0,0,0,0.08)'
+              : '0 2px 8px rgba(0,0,0,0.08)',
           animation: isActive ? 'orbit 3s linear infinite' : 'none',
         }}
       >
@@ -100,10 +100,10 @@ export default function AgentAvatar({ agent, status, position, speech, isSelecte
           background:
             status === 'done' ? '#10b981'
             : status === 'working' ? agent.color
-            : status === 'waiting' ? '#444'
+            : status === 'waiting' ? '#D1D5DB'
             : status === 'error' ? '#ef4444'
-            : '#2a2a2a',
-          border: '2.5px solid #0d1017',
+            : '#E8EAF0',
+          border: '2.5px solid #F8F9FB',
           boxShadow: status === 'working' ? `0 0 6px ${agent.color}60` : 'none',
           transition: 'all 0.3s ease',
         }}
@@ -116,11 +116,11 @@ export default function AgentAvatar({ agent, status, position, speech, isSelecte
           marginTop: 6,
           fontSize: 11,
           fontWeight: 600,
-          color: isActive ? '#fff' : isDone ? '#c8cdd5' : '#8b92a0',
+          color: isActive ? '#111827' : isDone ? '#111827' : '#6B7280',
           textAlign: 'center',
           whiteSpace: 'nowrap',
           transition: 'color 0.3s ease',
-          textShadow: isActive ? `0 0 8px ${agent.color}40` : 'none',
+          textShadow: 'none',
         }}
       >
         {agent.name}
@@ -128,7 +128,7 @@ export default function AgentAvatar({ agent, status, position, speech, isSelecte
       <div
         style={{
           fontSize: 9,
-          color: isActive ? agent.color : '#6b7280',
+          color: isActive ? agent.color : '#9CA3AF',
           textAlign: 'center',
           whiteSpace: 'nowrap',
           fontWeight: 500,
