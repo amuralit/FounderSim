@@ -43,15 +43,23 @@ You MUST respond with your strategic take AND include the Company Brief in the S
   // Check if response contains a brief (has the key sections)
   const hasBrief = text.includes('Mission:') && text.includes('Target Customer:') && text.includes('Value Proposition:');
 
-  if (shouldGenerateBrief) {
-    // User explicitly said go — always treat as ready
-    return { text, briefReady: true, brief: text };
-  }
+  if (hasBrief) {
+    // Polish the brief — remove boilerplate, clean formatting
+    let polishedBrief = text
+      .replace(/This is where I['']d take this\.?.*$/gm, '')
+      .replace(/Adjustments before I send the team to work\??/gi, '')
+      .replace(/Say ['"]go['"].*$/gim, '')
+      .replace(/Click Build Now.*$/gim, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
 
-  if (hasBrief && isFirstMessage) {
-    // Ada generated a brief on first response — show it but DON'T auto-start pipeline
-    // The brief is ready to be confirmed, but user must say "go"
-    return { text, briefReady: false, brief: text };
+    if (shouldGenerateBrief) {
+      return { text: polishedBrief, briefReady: true, brief: polishedBrief };
+    }
+
+    if (isFirstMessage) {
+      return { text: polishedBrief, briefReady: false, brief: polishedBrief };
+    }
   }
 
   return { text, briefReady: false };
