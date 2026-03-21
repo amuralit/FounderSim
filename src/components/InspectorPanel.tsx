@@ -303,7 +303,7 @@ export default function InspectorPanel({
       {/* ========== Scrollable content ========== */}
       <div
         ref={outputScrollRef}
-        className="flex-1 overflow-y-auto px-5 py-4 space-y-5"
+        className="flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-5"
         style={{ scrollbarGutter: 'stable' }}
       >
         {/* --- Output section --- */}
