@@ -14,6 +14,20 @@ interface PitchDeckProps {
   onClose: () => void;
 }
 
+function cleanSlideBody(text: string): string {
+  return text
+    .replace(/#{1,6}\s*/g, '')                    // headers
+    .replace(/\*\*([^*]+)\*\*/g, '$1')            // bold
+    .replace(/\*([^*]+)\*/g, '$1')                // italic
+    .replace(/`([^`]+)`/g, '$1')                  // inline code
+    .replace(/^\s*[-*]\s+/gm, '• ')               // bullets
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')      // links
+    .replace(/\|.*\|/g, '')                        // table rows
+    .replace(/^---+$/gm, '')                       // horizontal rules
+    .replace(/\n{3,}/g, '\n\n')                    // collapse excess newlines
+    .trim();
+}
+
 export default function PitchDeck({ slides, onClose }: PitchDeckProps) {
   const [current, setCurrent] = useState(0);
 
@@ -31,6 +45,7 @@ export default function PitchDeck({ slides, onClose }: PitchDeckProps) {
   }, [prev, next, onClose]);
 
   const slide = slides[current];
+  const isCover = current === 0;
 
   return (
     <div
@@ -49,30 +64,35 @@ export default function PitchDeck({ slides, onClose }: PitchDeckProps) {
         onClick={e => e.stopPropagation()}
       >
         <div
-          className="flex-1 flex items-center justify-center p-12 text-center"
-          style={{ background: slide.bg || '#FFFFFF' }}
+          className="flex-1 flex items-center justify-center p-12"
+          style={{
+            background: slide.bg || '#FFFFFF',
+            textAlign: isCover ? 'center' : 'left',
+          }}
         >
-          <div>
+          <div className={isCover ? '' : 'w-full max-w-[540px] mx-auto'}>
             <h2
-              className="font-bold mb-3"
+              className="font-bold mb-4"
               style={{
-                fontSize: current === 0 ? 36 : 28,
+                fontSize: isCover ? 40 : 28,
+                lineHeight: 1.2,
                 background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
+                textAlign: isCover ? 'center' : 'left',
               }}
             >
               {slide.title}
             </h2>
             {slide.subtitle && (
-              <p className="text-lg" style={{ color: '#6B7280' }}>{slide.subtitle}</p>
+              <p className="text-lg" style={{ color: isCover && slide.bg ? '#94a3b8' : '#6B7280', textAlign: 'center' }}>{slide.subtitle}</p>
             )}
             {slide.body && (
               <p
-                className="text-[15px] leading-[1.8] max-w-[500px] mx-auto text-left whitespace-pre-line"
+                className="text-[15px] leading-[1.9] whitespace-pre-line mt-2"
                 style={{ color: '#374151' }}
               >
-                {slide.body}
+                {cleanSlideBody(slide.body)}
               </p>
             )}
           </div>
@@ -91,7 +111,7 @@ export default function PitchDeck({ slides, onClose }: PitchDeckProps) {
           >
             ← Prev
           </button>
-          <span className="text-xs" style={{ color: '#9CA3AF' }}>
+          <span className="text-xs font-medium" style={{ color: '#9CA3AF' }}>
             {current + 1} / {slides.length}
           </span>
           <button

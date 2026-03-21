@@ -49,6 +49,8 @@ export default function FounderSim() {
   const [archDiagramBase64, setArchDiagramBase64] = useState<string | null>(null);
   const [productMockupBase64, setProductMockupBase64] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [totalTime, setTotalTime] = useState<number | null>(null);
   const [ceoChatLoading, setCeoChatLoading] = useState(false);
   const [showArtifacts, setShowArtifacts] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -211,12 +213,17 @@ export default function FounderSim() {
       }
       return 'Agents are working...';
     }
-    if (phase === 'delivered') return 'All agents complete. Click any agent to review their work.';
+    if (phase === 'delivered') {
+      const timeStr = totalTime ? ` (${Math.floor(totalTime / 60)}m ${totalTime % 60}s)` : '';
+      return `All agents complete${timeStr}. Click any agent to review.`;
+    }
     return null;
   }, [phase, activeAgent, pendingBrief]);
 
   // ── CEO CONVERSATION ──
   const handleMissionSubmit = useCallback((m: string) => {
+    setStartTime(Date.now());
+    setTotalTime(null);
     // Create project if none exists
     if (!currentProjectId) {
       const p = createNewProject();
@@ -480,7 +487,15 @@ export default function FounderSim() {
             ceo: 'done', research: 'done', product: 'done',
             architect: 'done', developer: 'done', tester: 'done',
           });
-          setSpeech('ceo', 'The company is built. Open the Fundraising Kit to see everything.');
+          if (startTime) {
+            const elapsed = Math.round((Date.now() - startTime) / 1000);
+            setTotalTime(elapsed);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            setSpeech('ceo', `Done in ${mins}m ${secs}s. Open the Fundraising Kit to see everything.`);
+          } else {
+            setSpeech('ceo', 'The company is built. Open the Fundraising Kit to see everything.');
+          }
         }
         break;
 

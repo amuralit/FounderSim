@@ -29,22 +29,104 @@ const TABS = [
 
 type TabId = typeof TABS[number]['id'];
 
-function generatePitchSlides(brief: string, research: string, product: string): { title: string; subtitle?: string; body?: string; bg?: string }[] {
-  const missionMatch = brief.match(/Mission[:\s]*(.+?)(?:\n|$)/i);
-  const mission = missionMatch?.[1]?.trim() || 'Building the future';
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/#{1,6}\s*/g, '')                    // headers
+    .replace(/\*\*([^*]+)\*\*/g, '$1')            // bold
+    .replace(/\*([^*]+)\*/g, '$1')                // italic
+    .replace(/`([^`]+)`/g, '$1')                  // inline code
+    .replace(/^\s*[-*]\s+/gm, '• ')               // bullets
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')      // links
+    .replace(/\|.*\|/g, '')                        // table rows
+    .replace(/^---+$/gm, '')                       // horizontal rules
+    .replace(/\n{3,}/g, '\n\n')                    // collapse excess newlines
+    .trim();
+}
 
-  return [
-    { title: mission.split('.')[0] || 'Our Mission', subtitle: 'From idea to investor-ready', bg: 'linear-gradient(135deg, #0f172a, #1e293b)' },
-    { title: 'The Problem', body: brief.match(/Pain[^:]*[:\s]*(.+?)(?:\n|$)/i)?.[1] || 'A critical pain point that needs solving.' },
-    { title: 'The Solution', body: brief.match(/Value Prop[^:]*[:\s]*(.+?)(?:\n|$)/i)?.[1] || 'Our unique approach to the problem.' },
-    { title: 'Market Size', body: research.match(/TAM[\s\S]*?SOM[^\n]*/i)?.[0] || 'Large and growing market opportunity.' },
-    { title: 'The Product', body: product.match(/MVP Features[\s\S]*?(?=Cut List|Success|$)/i)?.[0]?.substring(0, 300) || 'Core features that deliver value.' },
-    { title: 'Competition', body: research.match(/Competitive Matrix[\s\S]*?(?=Market Gap|Customer|$)/i)?.[0]?.substring(0, 400) || 'Clear competitive advantages.' },
-    { title: 'Business Model', body: 'Freemium → Pro → Enterprise\nLand and expand strategy' },
-    { title: 'Traction', body: 'Built from idea to deployed product using AI agents.\nReal database. Real deployment. Real product.' },
-    { title: 'The Team', body: '5 AI agents + human oversight\nResearch, Product, Architecture, Development, CEO' },
-    { title: 'The Ask', body: 'Raising pre-seed to capture this market window.\nUse of funds: Engineering (60%), GTM (25%), Ops (15%)' },
-  ];
+function extractField(text: string, ...patterns: string[]): string {
+  for (const p of patterns) {
+    const regex = new RegExp(`${p}[:\\s]*([^\\n]+(?:\\n(?![A-Z#][a-z]*[:\\s])[^\\n]+)*)`, 'im');
+    const match = regex.exec(text);
+    if (match && match[1].trim().length > 10) return stripMarkdown(match[1].trim());
+  }
+  return '';
+}
+
+function generatePitchSlides(brief: string, research: string, product: string): { title: string; subtitle?: string; body?: string; bg?: string }[] {
+  const slides: { title: string; subtitle?: string; body?: string; bg?: string }[] = [];
+
+  // Cover slide
+  const mission = extractField(brief, 'Mission') || extractField(brief, 'Company Name');
+  slides.push({
+    title: mission ? mission.split('.')[0] : 'Our Mission',
+    subtitle: 'Built by AI agents, guided by humans',
+    bg: 'linear-gradient(135deg, #0f172a, #1e293b)',
+  });
+
+  // Problem
+  const pain = extractField(brief, 'Pain Level', 'Pain');
+  const target = extractField(brief, 'Target Customer', 'Target');
+  if (pain || target) {
+    slides.push({ title: 'The Problem', body: [target, pain].filter(Boolean).join('\n\n') });
+  }
+
+  // Solution
+  const valueProp = extractField(brief, 'Value Proposition', 'Value Prop');
+  const wedge = extractField(brief, 'Wedge Product', 'Wedge');
+  if (valueProp || wedge) {
+    slides.push({ title: 'The Solution', body: [valueProp, wedge].filter(Boolean).join('\n\n') });
+  }
+
+  // Market Size (only with real data)
+  const tam = extractField(research, 'TAM');
+  const sam = extractField(research, 'SAM');
+  const som = extractField(research, 'SOM');
+  if (tam || sam || som) {
+    slides.push({
+      title: 'Market Size',
+      body: [tam && `TAM: ${tam}`, sam && `SAM: ${sam}`, som && `SOM: ${som}`].filter(Boolean).join('\n'),
+    });
+  }
+
+  // Product
+  const killer = extractField(product, 'Killer Feature', 'killerFeature');
+  const jobToBeDone = extractField(product, 'Jobs?.to.Be.Done', 'jobToBeDone', 'Job');
+  if (killer || jobToBeDone) {
+    slides.push({
+      title: 'The Product',
+      body: [killer, jobToBeDone].filter(Boolean).join('\n\n'),
+    });
+  }
+
+  // Competition / Our Edge
+  const gap = extractField(research, 'Market Gap', 'Gap', 'What.*Missing');
+  if (gap) {
+    slides.push({ title: 'Our Edge', body: gap });
+  }
+
+  // Why Now
+  const whyNow = extractField(brief, 'Why Now');
+  if (whyNow) {
+    slides.push({ title: 'Why Now', body: whyNow });
+  }
+
+  // Vision
+  const metric = extractField(brief, 'Key Metric');
+  const vision = extractField(brief, '10x Vision');
+  if (metric || vision) {
+    slides.push({
+      title: 'The Vision',
+      body: [metric && `Key Metric: ${metric}`, vision].filter(Boolean).join('\n\n'),
+    });
+  }
+
+  // Ask (always include)
+  slides.push({
+    title: 'The Ask',
+    body: 'Raising pre-seed to capture this market window.\n\nUse of funds:\n• Engineering (60%)\n• Go-to-market (25%)\n• Operations (15%)',
+  });
+
+  return slides;
 }
 
 export default function FundraisingKit({
@@ -188,14 +270,14 @@ export default function FundraisingKit({
                     />
                   </div>
                 )}
-                <div className="prose prose-sm max-w-none" style={{ color: '#374151' }}>
+                <div className="md-content">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{researchOutput || 'Research data not yet available.'}</ReactMarkdown>
                 </div>
               </div>
             )}
 
             {activeTab === 'architecture' && (
-              <div className="prose prose-sm max-w-none" style={{ color: '#374151' }}>
+              <div className="md-content">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{architectOutput || 'Architecture document not yet available.'}</ReactMarkdown>
               </div>
             )}
