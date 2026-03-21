@@ -28,7 +28,7 @@ FORMATTING RULES:
 - Write in executive style — clear, direct, confident. No filler words.
 - Use plain text only. No markdown, no bold, no bullets, no headers.
 - Use line breaks between sections for scannability.
-- End with: "This is where I'd take this. Say 'go' to start building, or tell me what to adjust."
+- End with: "This is where I'd take this. Adjustments before I send the team to work?"
 - Never use: leverage, synergy, holistic, ecosystem, paradigm.
 - Max 250 words. Be concise.`;
 

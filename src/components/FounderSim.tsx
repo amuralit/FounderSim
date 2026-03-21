@@ -280,7 +280,7 @@ export default function FounderSim() {
           setPendingBrief(data.brief);
           const confirmMsg: ChatMessage = {
             from: 'ceo',
-            text: "This is where I'd take this. Review the brief above, then say **\"go\"** when you're ready -- or tell me what to adjust.",
+            text: "Brief is ready. Click the green Build Now button below, or tell me what to adjust.",
             ts: Date.now() + 1,
           };
           setChatHistories(prev => ({ ...prev, ceo: [...(prev.ceo || []), agentMsg, confirmMsg] }));
@@ -342,7 +342,7 @@ export default function FounderSim() {
             setPendingBrief(data.brief);
             const confirmMsg: ChatMessage = {
               from: 'ceo',
-              text: "Updated brief is ready. Say **\"go\"** to kick things off, or keep refining.",
+              text: "Updated brief is ready. Click Build Now below, or keep refining.",
               ts: Date.now() + 1,
             };
             setChatHistories(prev => ({ ...prev, ceo: [...(prev.ceo || []), agentMsg, confirmMsg] }));

@@ -17,6 +17,7 @@ interface InspectorPanelProps {
   archDiagram?: string | null;
   productMockup?: string | null;
   agentStatus?: 'idle' | 'waiting' | 'working' | 'done' | 'error';
+  onBuildNow?: () => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -488,8 +489,8 @@ export default function InspectorPanel({
           </div>
         )}
 
-        {/* --- Chat history --- */}
-        {chatHistory.length > 0 && (
+        {/* --- Chat history (only show user-initiated conversations) --- */}
+        {chatHistory.filter(m => m.from === 'user').length > 0 && (
           <div>
             {/* Section label */}
             <div className="flex items-center gap-2 mb-3">
