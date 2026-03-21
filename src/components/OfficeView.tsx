@@ -98,8 +98,7 @@ export default function OfficeView({ agents, statuses, positions, speeches, sele
           const from = positions['ceo'];
           const to = positions[agent.id];
           const status = statuses[agent.id];
-          if (status === 'idle' || status === 'waiting') return null;
-          const isWorking = status === 'working';
+          if (status !== 'working') return null; // Only show line to ACTIVE agent
           return (
             <line
               key={agent.id}
@@ -108,10 +107,10 @@ export default function OfficeView({ agents, statuses, positions, speeches, sele
               x2={`${to.x}%`}
               y2={`${to.y + 5}%`}
               stroke={agent.color}
-              strokeWidth={isWorking ? 2 : 1}
-              strokeDasharray={isWorking ? '6 4' : '4 8'}
+              strokeWidth={2}
+              strokeDasharray="6 4"
               strokeLinecap="round"
-              opacity={isWorking ? 0.5 : 0.15}
+              opacity={0.4}
               filter={isWorking ? 'url(#line-glow)' : undefined}
               style={isWorking ? { animation: 'flowDash 0.8s linear infinite' } : undefined}
             />
