@@ -114,9 +114,22 @@ export default function FundraisingKit({
                 ) : webUrl ? (
                   <div>
                     <div className="text-4xl mb-4">💻</div>
-                    <h3 className="text-xl font-bold mb-2" style={{ color: '#111827' }}>Code Generated</h3>
-                    <a href={webUrl} target="_blank" rel="noopener noreferrer" className="text-[#10b981] underline">{webUrl}</a>
-                    <p className="text-sm mt-2" style={{ color: '#9CA3AF' }}>View and edit the generated code on v0</p>
+                    <h3 className="text-xl font-bold mb-2" style={{ color: '#111827' }}>App Building on v0</h3>
+                    <p className="text-sm mb-4" style={{ color: '#6B7280' }}>
+                      v0 is building your app. Click below to see progress and get the deploy URL.
+                    </p>
+                    <a
+                      href={webUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white cursor-pointer transition-all hover:scale-[1.02]"
+                      style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)', boxShadow: '0 4px 16px rgba(245,158,11,0.25)' }}
+                    >
+                      Open in v0 →
+                    </a>
+                    <p className="text-xs mt-3" style={{ color: '#9CA3AF' }}>
+                      Once v0 finishes building, click &quot;Publish&quot; in v0 to get your live URL
+                    </p>
                   </div>
                 ) : (
                   <div>

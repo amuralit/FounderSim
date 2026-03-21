@@ -38,7 +38,13 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
 - Do NOT add Supabase integration or Stripe integration via v0's integration system. Instead, use @supabase/supabase-js directly with environment variables.
 - Do NOT prompt for any integrations. Use plain npm packages and env vars for all external services.
 - The app must build and deploy without any manual intervention or integration approvals.
-- Use fetch() or SDK clients directly — never rely on v0 platform integrations.`,
+- For the /api/agent endpoint: use @google/genai SDK directly, NOT the Vercel AI SDK, NOT ai-gateway.vercel.sh.
+- Import: import { GoogleGenAI } from '@google/genai';
+- Initialize: const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY! });
+- Call: ai.models.generateContent({ model: 'gemini-3.1-pro-preview', contents: '...', config: { tools: [{ googleSearch: {} }, { urlContext: {} }] } })
+- Add @google/genai to dependencies.
+- The GOOGLE_GENERATIVE_AI_API_KEY env var is already set in Vercel.
+- NEVER use Vercel AI Gateway (ai-gateway.vercel.sh) — it will cause server errors.`,
       system: DEVELOPER_SYSTEM_PROMPT,
     });
     const chatData = chat as Record<string, unknown>;

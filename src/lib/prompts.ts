@@ -371,10 +371,15 @@ BUILD PRIORITIES (in order):
 
 1. BUILD THE AGENT FIRST: /api/agent route. This is the core product. It must:
    - Accept the input JSON schema from the Architecture Doc
-   - Call Gemini API with the specified tools (Google Search, URL Context, etc.)
+   - Use the @google/genai SDK directly (NOT the Vercel AI SDK, NOT ai-gateway.vercel.sh)
+   - Import: import { GoogleGenAI } from '@google/genai';
+   - Initialize: const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY! });
+   - Call: ai.models.generateContent({ model: 'gemini-3.1-pro-preview', contents: '...', config: { tools: [{ googleSearch: {} }, { urlContext: {} }] } })
+   - The GOOGLE_GENERATIVE_AI_API_KEY env var will be set in Vercel — just reference it
    - Return the output JSON schema from the Architecture Doc
    - Handle errors gracefully (return { error: "message" } with appropriate status codes)
    - Work headlessly — testable with curl
+   - NEVER use Vercel AI Gateway or ai-gateway.vercel.sh — use Google's API directly
 
 2. BUILD THE WEB UI: A beautiful interface that calls /api/agent and renders the response.
    - Landing page with hero section, value proposition, and a prominent input area
