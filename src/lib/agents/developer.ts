@@ -33,7 +33,12 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
   try {
     // Primary: v0 SDK
     const { v0 } = await import('v0-sdk');
-    const project = await v0.projects.create({ name: 'foundersim-gen' });
+    const project = await v0.projects.create({
+      name: 'foundersim-gen',
+      environmentVariables: [
+        { key: 'GOOGLE_GENERATIVE_AI_API_KEY', value: process.env.GOOGLE_GENERATIVE_AI_API_KEY! },
+      ],
+    });
     const chat = await v0.chats.create({
       projectId: project.id,
       message: taskPrompt + `\n\nCRITICAL BUILD RULES:
