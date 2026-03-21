@@ -467,15 +467,17 @@ export default function InspectorPanel({
           <div className="flex flex-col items-center justify-center py-16 select-none">
             <div
               className="text-5xl mb-4"
-              style={{ animation: 'float 3s ease-in-out infinite' }}
+              style={{
+                animation: agentStatus === 'working' ? 'pulse-dot 1.5s infinite' : 'float 3s ease-in-out infinite',
+              }}
             >
               {roleEmoji[agent.id]}
             </div>
-            <div className="text-sm font-medium mb-1" style={{ color: '#9CA3AF' }}>
-              Waiting for assignment...
+            <div className="text-sm font-medium mb-1" style={{ color: agentStatus === 'working' ? agent.color : '#9CA3AF' }}>
+              {agentStatus === 'working' ? `${agent.name.split(' ')[0]} is working...` : agentStatus === 'waiting' ? 'In queue — waiting for upstream agents' : 'Waiting for assignment...'}
             </div>
             <div className="text-[11px]" style={{ color: '#9CA3AF' }}>
-              {agent.name.split(' ')[0]} is standing by
+              {agentStatus === 'working' ? 'Output will appear here when ready' : agentStatus === 'waiting' ? 'Will start when dependencies complete' : `${agent.name.split(' ')[0]} is standing by`}
             </div>
             <style jsx>{`
               @keyframes float {
