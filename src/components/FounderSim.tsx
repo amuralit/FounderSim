@@ -437,6 +437,14 @@ export default function FounderSim() {
       case 'agent_speech':
         if (agent) {
           setSpeech(agent, data.text as string);
+          // Store debate/review messages in chat history so they persist
+          const speechText = data.text as string;
+          if (speechText && speechText.length > 20) {
+            setChatHistories(prev => ({
+              ...prev,
+              [agent]: [...(prev[agent] || []), { from: agent, text: speechText, ts: Date.now() } as ChatMessage],
+            }));
+          }
         }
         break;
 

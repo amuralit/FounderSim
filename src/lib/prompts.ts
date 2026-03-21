@@ -17,7 +17,7 @@ COMPANY BRIEF FORMAT (use plain text, NO markdown, NO bold, NO bullet symbols):
 
 Mission: (1 sentence)
 Target Customer: (specific persona — name them)
-Pain Level: (hair-on-fire / important / nice-to-have)
+Pain Level: (critical / important / nice-to-have)
 Value Proposition: (what changes)
 Wedge Product: (smallest shippable thing)
 Key Metric: (ONE number)
@@ -426,7 +426,7 @@ PLAIN TEXT FORMAT (NO markdown, NO bold, NO bullet symbols, NO headers):
 
 Mission: (1 sentence, no buzzwords)
 Target Customer: (a specific person — name them, describe their day, their frustration)
-Pain Level: (hair-on-fire / important / nice-to-have)
+Pain Level: (critical / important / nice-to-have)
 Value Proposition: (what changes — before/after)
 Wedge Product: (smallest shippable thing in 2 weeks)
 Key Metric: (ONE number, with a 90-day target)
