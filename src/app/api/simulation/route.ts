@@ -191,17 +191,24 @@ export async function POST(req: NextRequest) {
           architectOutput.substring(0, 400)
         ).catch(() => null);
 
-        // ── COLLECT IMAGES (non-blocking, 15s timeout per image) ──
+        // ── COLLECT IMAGES (await with 20s timeout so they arrive before stream closes) ──
         const withTimeout = (p: Promise<string | null>, ms: number) =>
           Promise.race([p, new Promise<null>(r => setTimeout(() => r(null), ms))]);
 
-        Promise.allSettled([
-          withTimeout(logoPromise, 15000).then(d => d && send('image_ready', { type: 'logo', data: d })),
-          withTimeout(competitiveVisualPromise, 15000).then(d => d && send('image_ready', { type: 'competitive_visual', data: d })),
-          withTimeout(marketMapPromise, 15000).then(d => d && send('image_ready', { type: 'market_map', data: d })),
-          withTimeout(archDiagramPromise, 15000).then(d => d && send('image_ready', { type: 'architecture_diagram', data: d })),
-          withTimeout(productMockupPromise, 15000).then(d => d && send('image_ready', { type: 'product_mockup', data: d })),
-        ]).catch(() => { /* images are best-effort */ });
+        try {
+          const [logo, compVis, mktMap, archDia, prodMock] = await Promise.all([
+            withTimeout(logoPromise, 20000),
+            withTimeout(competitiveVisualPromise, 20000),
+            withTimeout(marketMapPromise, 20000),
+            withTimeout(archDiagramPromise, 20000),
+            withTimeout(productMockupPromise, 20000),
+          ]);
+          if (logo) send('image_ready', { type: 'logo', data: logo });
+          if (compVis) send('image_ready', { type: 'competitive_visual', data: compVis });
+          if (mktMap) send('image_ready', { type: 'market_map', data: mktMap });
+          if (archDia) send('image_ready', { type: 'architecture_diagram', data: archDia });
+          if (prodMock) send('image_ready', { type: 'product_mockup', data: prodMock });
+        } catch { /* timeout — continue without images */ }
 
         // ── DEVELOPER AGENT (starts immediately, doesn't wait for images) ──
         send('agent_start', { agent: 'developer' });
