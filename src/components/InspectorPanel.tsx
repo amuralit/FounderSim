@@ -501,7 +501,14 @@ export default function InspectorPanel({
             </div>
 
             <div className="space-y-2.5">
-              {chatHistory.map((msg, i) => {
+              {chatHistory.filter(m => {
+                // Only show messages that are part of user-initiated conversations
+                // Skip auto-generated debate/speech messages (agent messages with no preceding user message)
+                if (m.from === 'user') return true;
+                // Show agent replies that follow a user message
+                const idx = chatHistory.indexOf(m);
+                return idx > 0 && chatHistory.slice(0, idx).some(prev => prev.from === 'user');
+              }).map((msg, i) => {
                 const isUser = msg.from === 'user';
                 return (
                   <div

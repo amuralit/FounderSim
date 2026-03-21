@@ -47,7 +47,10 @@ function formatFileSize(bytes: number): string {
 }
 
 function downloadAsPDF(filename: string, content: string, title: string, imageBase64?: string | null) {
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+  // Use landscape if content has wide tables (7+ column tables)
+  const hasWideTable = (content.match(/\|/g) || []).length > 50;
+  const orientation = hasWideTable ? 'landscape' : 'portrait';
+  const doc = new jsPDF({ orientation, unit: 'pt', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 50;
