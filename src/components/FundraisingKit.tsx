@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import jsPDF from 'jspdf';
 import PitchDeck from './PitchDeck';
 import { DecisionEntry } from '@/lib/agents/types';
 
@@ -138,6 +139,50 @@ export default function FundraisingKit({
 
   const pitchSlides = generatePitchSlides(companyBrief, researchOutput, productOutput);
 
+  const downloadPDF = useCallback(() => {
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: [1280, 720] });
+
+    pitchSlides.forEach((slide, i) => {
+      if (i > 0) doc.addPage([1280, 720], 'landscape');
+
+      // Background
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, 1280, 720, 'F');
+
+      // Title
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(i === 0 ? 48 : 36);
+      doc.setTextColor(245, 158, 11);
+      const titleLines = doc.splitTextToSize(slide.title, 1000);
+      doc.text(titleLines, 640, i === 0 ? 280 : 120, { align: 'center' });
+
+      // Subtitle (cover only)
+      if (slide.subtitle) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(20);
+        doc.setTextColor(148, 163, 184);
+        doc.text(slide.subtitle, 640, 340, { align: 'center' });
+      }
+
+      // Body
+      if (slide.body) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(18);
+        doc.setTextColor(203, 213, 225);
+        const bodyLines = doc.splitTextToSize(stripMarkdown(slide.body), 900);
+        doc.text(bodyLines, 190, 200, { align: 'left' });
+      }
+
+      // Slide number
+      doc.setFontSize(12);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`${i + 1} / ${pitchSlides.length}`, 1240, 700, { align: 'right' });
+    });
+
+    const filename = pitchSlides[0]?.title?.replace(/[^a-zA-Z0-9]/g, '-') || 'pitch-deck';
+    doc.save(`${filename}-pitch-deck.pdf`);
+  }, [pitchSlides]);
+
   return (
     <>
       <div
@@ -227,13 +272,22 @@ export default function FundraisingKit({
               <div className="text-center py-10">
                 <div className="text-4xl mb-4">📊</div>
                 <h3 className="text-xl font-bold mb-4" style={{ color: '#111827' }}>Pitch Deck</h3>
-                <button
-                  onClick={() => setShowPitchDeck(true)}
-                  className="px-6 py-3 rounded-lg font-semibold text-white cursor-pointer"
-                  style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}
-                >
-                  Open Full Presentation →
-                </button>
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => setShowPitchDeck(true)}
+                    className="px-6 py-3 rounded-lg font-semibold text-white cursor-pointer"
+                    style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}
+                  >
+                    Open Full Presentation →
+                  </button>
+                  <button
+                    onClick={downloadPDF}
+                    className="px-6 py-3 rounded-lg font-semibold cursor-pointer transition-all hover:scale-[1.02]"
+                    style={{ background: '#F3F4F6', border: '1px solid #E8EAF0', color: '#6B7280' }}
+                  >
+                    Download PDF
+                  </button>
+                </div>
                 <div className="mt-6 grid grid-cols-5 gap-2">
                   {pitchSlides.map((slide, i) => (
                     <div

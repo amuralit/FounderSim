@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import jsPDF from 'jspdf';
 
 interface Slide {
   title: string;
@@ -33,6 +34,50 @@ export default function PitchDeck({ slides, onClose }: PitchDeckProps) {
 
   const prev = useCallback(() => setCurrent(c => Math.max(0, c - 1)), []);
   const next = useCallback(() => setCurrent(c => Math.min(slides.length - 1, c + 1)), [slides.length]);
+
+  const downloadPDF = useCallback(() => {
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: [1280, 720] });
+
+    slides.forEach((slide, i) => {
+      if (i > 0) doc.addPage([1280, 720], 'landscape');
+
+      // Background
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, 1280, 720, 'F');
+
+      // Title
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(i === 0 ? 48 : 36);
+      doc.setTextColor(245, 158, 11);
+      const titleLines = doc.splitTextToSize(slide.title, 1000);
+      doc.text(titleLines, 640, i === 0 ? 280 : 120, { align: 'center' });
+
+      // Subtitle (cover only)
+      if (slide.subtitle) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(20);
+        doc.setTextColor(148, 163, 184);
+        doc.text(slide.subtitle, 640, 340, { align: 'center' });
+      }
+
+      // Body
+      if (slide.body) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(18);
+        doc.setTextColor(203, 213, 225);
+        const bodyLines = doc.splitTextToSize(cleanSlideBody(slide.body), 900);
+        doc.text(bodyLines, 190, 200, { align: 'left' });
+      }
+
+      // Slide number
+      doc.setFontSize(12);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`${i + 1} / ${slides.length}`, 1240, 700, { align: 'right' });
+    });
+
+    const filename = slides[0]?.title?.replace(/[^a-zA-Z0-9]/g, '-') || 'pitch-deck';
+    doc.save(`${filename}-pitch-deck.pdf`);
+  }, [slides]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -114,6 +159,13 @@ export default function PitchDeck({ slides, onClose }: PitchDeckProps) {
           <span className="text-xs font-medium" style={{ color: '#9CA3AF' }}>
             {current + 1} / {slides.length}
           </span>
+          <button
+            onClick={downloadPDF}
+            className="px-4 py-1.5 rounded-md text-[13px] font-medium cursor-pointer transition-all hover:scale-[1.02]"
+            style={{ background: '#F3F4F6', border: '1px solid #E8EAF0', color: '#6B7280' }}
+          >
+            Download PDF
+          </button>
           <button
             onClick={next}
             disabled={current === slides.length - 1}
