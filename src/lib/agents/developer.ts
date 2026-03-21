@@ -33,18 +33,30 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
   try {
     // Primary: v0 SDK
     const { v0 } = await import('v0-sdk');
+    // Pass ALL env vars so the generated app works without manual setup
+    const envVars: { key: string; value: string }[] = [
+      { key: 'GOOGLE_GENERATIVE_AI_API_KEY', value: process.env.GOOGLE_GENERATIVE_AI_API_KEY! },
+    ];
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      envVars.push({ key: 'NEXT_PUBLIC_SUPABASE_URL', value: process.env.NEXT_PUBLIC_SUPABASE_URL });
+    }
+    if (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      envVars.push({ key: 'NEXT_PUBLIC_SUPABASE_ANON_KEY', value: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY });
+    }
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      envVars.push({ key: 'SUPABASE_SERVICE_ROLE_KEY', value: process.env.SUPABASE_SERVICE_ROLE_KEY });
+    }
     const project = await v0.projects.create({
       name: 'foundersim-gen',
-      environmentVariables: [
-        { key: 'GOOGLE_GENERATIVE_AI_API_KEY', value: process.env.GOOGLE_GENERATIVE_AI_API_KEY! },
-      ],
+      environmentVariables: envVars,
     });
     const chat = await v0.chats.create({
       projectId: project.id,
       message: taskPrompt + `\n\nCRITICAL BUILD RULES:
-- Do NOT add Supabase integration or Stripe integration via v0's integration system. Instead, use @supabase/supabase-js directly with environment variables.
-- Do NOT prompt for any integrations. Use plain npm packages and env vars for all external services.
-- The app must build and deploy without any manual intervention or integration approvals.
+- ABSOLUTELY DO NOT use v0 integrations for Supabase, Stripe, or any service. NO integration prompts. NO "Install" buttons. The app MUST build without ANY human interaction.
+- For Supabase: import { createClient } from '@supabase/supabase-js' and use process.env.NEXT_PUBLIC_SUPABASE_URL and process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY directly. These env vars are ALREADY SET.
+- For any database needs: use @supabase/supabase-js npm package with env vars. NEVER use v0's Supabase integration.
+- The build MUST complete autonomously. If you add any integration that requires user approval, the build will timeout and fail.
 - For the /api/agent endpoint: use @google/genai SDK directly, NOT the Vercel AI SDK, NOT ai-gateway.vercel.sh.
 - Import: import { GoogleGenAI } from '@google/genai';
 - Initialize: const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY! });
