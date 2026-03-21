@@ -233,21 +233,24 @@ function downloadAsPDF(filename: string, content: string, title: string, imageBa
       const cells = trimmed.split('|').filter(c => c.trim()).map(c => cleanInline(c.trim()));
       if (cells.length > 0) {
         if (y + 18 > pageHeight - 60) { doc.addPage(); y = 50; }
+        // Use smaller font for tables with many columns
+        const fontSize = cells.length > 4 ? 7 : cells.length > 3 ? 8 : 9;
         const colWidth = maxWidth / cells.length;
-        // Detect if this is a header row (bold cells or first row)
         const isHeader = cells.some(c => /^\*\*.*\*\*$/.test(c.trim())) || rawLines.indexOf(rawLine) === rawLines.findIndex(l => l.trim().startsWith('|'));
         doc.setFont('helvetica', isHeader ? 'bold' : 'normal');
-        doc.setFontSize(10);
+        doc.setFontSize(fontSize);
         doc.setTextColor(isHeader ? 17 : 55, isHeader ? 24 : 65, isHeader ? 39 : 81);
         if (isHeader) {
-          doc.setFillColor(243, 244, 246); // #F3F4F6
-          doc.rect(margin, y - 10, maxWidth, 16, 'F');
+          doc.setFillColor(243, 244, 246);
+          doc.rect(margin, y - 10, maxWidth, 14, 'F');
         }
         for (let ci = 0; ci < cells.length; ci++) {
-          const cellText = cells[ci].substring(0, Math.floor(colWidth / 5)); // truncate to fit
-          doc.text(cellText, margin + ci * colWidth + 4, y);
+          // Wrap text within cell width
+          const maxChars = Math.max(12, Math.floor(colWidth / (fontSize * 0.45)));
+          const cellText = cells[ci].length > maxChars ? cells[ci].substring(0, maxChars - 2) + '..' : cells[ci];
+          doc.text(cellText, margin + ci * colWidth + 2, y);
         }
-        y += 16;
+        y += 14;
         continue;
       }
     }
