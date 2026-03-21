@@ -111,8 +111,8 @@ export default function OfficeView({ agents, statuses, positions, speeches, sele
               strokeDasharray="6 4"
               strokeLinecap="round"
               opacity={0.4}
-              filter={isWorking ? 'url(#line-glow)' : undefined}
-              style={isWorking ? { animation: 'flowDash 0.8s linear infinite' } : undefined}
+              filter="url(#line-glow)"
+              style={{ animation: 'flowDash 0.8s linear infinite' }}
             />
           );
         })}
