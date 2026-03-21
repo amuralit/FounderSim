@@ -46,9 +46,19 @@ function stripMarkdown(text: string): string {
 
 function extractField(text: string, ...patterns: string[]): string {
   for (const p of patterns) {
-    const regex = new RegExp(`${p}[:\\s]*([^\\n]+(?:\\n(?![A-Z#][a-z]*[:\\s])[^\\n]+)*)`, 'im');
-    const match = regex.exec(text);
-    if (match && match[1].trim().length > 10) return stripMarkdown(match[1].trim());
+    // Try labeled format: "TAM: $15.3B" or "TAM — $15.3B"
+    const labeledRegex = new RegExp(`${p}[:\\s\u2014\u2013-]+([^\\n]+)`, 'im');
+    const labeledMatch = labeledRegex.exec(text);
+    if (labeledMatch && labeledMatch[1].trim().length > 5) {
+      return stripMarkdown(labeledMatch[1].trim());
+    }
+
+    // Try section format: heading followed by content paragraph
+    const sectionRegex = new RegExp(`(?:^|\\n)(?:#{1,3}\\s*)?${p}[^\\n]*\\n+([^\\n]+(?:\\n(?![#A-Z])[^\\n]+)*)`, 'im');
+    const sectionMatch = sectionRegex.exec(text);
+    if (sectionMatch && sectionMatch[1].trim().length > 10) {
+      return stripMarkdown(sectionMatch[1].trim().substring(0, 300));
+    }
   }
   return '';
 }
@@ -78,15 +88,18 @@ function generatePitchSlides(brief: string, research: string, product: string): 
     slides.push({ title: 'The Solution', body: [valueProp, wedge].filter(Boolean).join('\n\n') });
   }
 
-  // Market Size (only with real data)
-  const tam = extractField(research, 'TAM');
-  const sam = extractField(research, 'SAM');
-  const som = extractField(research, 'SOM');
-  if (tam || sam || som) {
-    slides.push({
-      title: 'Market Size',
-      body: [tam && `TAM: ${tam}`, sam && `SAM: ${sam}`, som && `SOM: ${som}`].filter(Boolean).join('\n'),
-    });
+  // Market Size — look for actual dollar figures
+  const marketSection = extractField(research, 'TAM.SAM.SOM', 'Market Siz', 'TAM');
+  if (marketSection && marketSection.match(/\$[\d.]+[BMK]/i)) {
+    slides.push({ title: 'Market Size', body: marketSection });
+  } else {
+    const tam = extractField(research, 'TAM');
+    const sam = extractField(research, 'SAM');
+    const som = extractField(research, 'SOM');
+    const marketBody = [tam && `TAM: ${tam}`, sam && `SAM: ${sam}`, som && `SOM: ${som}`].filter(Boolean).join('\n');
+    if (marketBody && marketBody.match(/\$[\d.]+[BMK]/i)) {
+      slides.push({ title: 'Market Size', body: marketBody });
+    }
   }
 
   // Product
