@@ -101,16 +101,19 @@ export default function ProjectSwitcher({ projects, currentProjectId, onSelect, 
                         {phaseLabels[project.phase] || project.phase} · {new Date(project.updatedAt).toLocaleDateString()}
                       </div>
                     </div>
-                    {project.id !== currentProjectId && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); onDelete(project.id); }}
-                        className="text-[10px] px-1.5 py-0.5 rounded cursor-pointer opacity-0 hover:opacity-100 transition-opacity"
-                        style={{ background: '#FEF2F2', color: '#DC2626', border: 'none' }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
-                      >
-                        ✕
-                      </button>
-                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`Delete "${project.name}"? This will also remove the deployed app.`)) {
+                          onDelete(project.id);
+                        }
+                      }}
+                      className="text-[10px] px-2 py-1 rounded cursor-pointer transition-all shrink-0"
+                      style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}
+                      title="Delete project"
+                    >
+                      Delete
+                    </button>
                   </div>
                 ))
               )}
