@@ -16,6 +16,9 @@ interface ArtifactPanelProps {
   demoUrl: string | null;
   webUrl: string | null;
   logoBase64: string | null;
+  marketMapBase64?: string | null;
+  archDiagramBase64?: string | null;
+  productMockupBase64?: string | null;
   onClose: () => void;
 }
 
@@ -338,6 +341,9 @@ export default function ArtifactPanel({
   demoUrl,
   webUrl,
   logoBase64,
+  marketMapBase64,
+  archDiagramBase64,
+  productMockupBase64,
   onClose,
 }: ArtifactPanelProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -424,8 +430,50 @@ export default function ArtifactPanel({
       });
     }
 
+    if (marketMapBase64) {
+      entries.push({
+        id: 'market_map',
+        filename: 'market-map.png',
+        icon: '\u{1F5FA}',
+        agentId: 'research',
+        agentName: research.name,
+        agentColor: research.color,
+        content: marketMapBase64,
+        mimeType: 'image/png',
+        isBinary: true,
+      });
+    }
+
+    if (productMockupBase64) {
+      entries.push({
+        id: 'product_mockup',
+        filename: 'product-mockup.png',
+        icon: '\u{1F4F1}',
+        agentId: 'product',
+        agentName: product.name,
+        agentColor: product.color,
+        content: productMockupBase64,
+        mimeType: 'image/png',
+        isBinary: true,
+      });
+    }
+
+    if (archDiagramBase64) {
+      entries.push({
+        id: 'architecture_diagram',
+        filename: 'architecture-diagram.png',
+        icon: '\u{1F3D7}',
+        agentId: 'architect',
+        agentName: architect.name,
+        agentColor: architect.color,
+        content: archDiagramBase64,
+        mimeType: 'image/png',
+        isBinary: true,
+      });
+    }
+
     return entries;
-  }, [outputs, companyBrief, logoBase64]);
+  }, [outputs, companyBrief, logoBase64, marketMapBase64, archDiagramBase64, productMockupBase64]);
 
   /* Stats */
   const readyCount = artifacts.filter(a => a.content !== null).length;

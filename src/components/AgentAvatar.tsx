@@ -128,16 +128,44 @@ export default function AgentAvatar({ agent, status, position, speech, isSelecte
       <div
         style={{
           fontSize: 9,
-          color: isActive ? agent.color : '#9CA3AF',
+          color: isActive ? agent.color : isDone ? '#10b981' : status === 'waiting' ? '#f59e0b' : '#9CA3AF',
           textAlign: 'center',
           whiteSpace: 'nowrap',
           fontWeight: 500,
           letterSpacing: '0.05em',
           transition: 'color 0.3s ease',
+          maxWidth: 100,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
         }}
       >
-        {agent.role}
+        {status === 'working' ? funStatusWorking(agent.id)
+          : isDone ? funStatusDone(agent.id)
+          : status === 'waiting' ? 'In queue...'
+          : agent.role}
       </div>
     </div>
   );
+}
+
+function funStatusWorking(agentId: string): string {
+  const lines: Record<string, string> = {
+    ceo: 'Crafting the vision...',
+    research: 'Digging into data...',
+    product: 'Prioritizing features...',
+    architect: 'Drawing blueprints...',
+    developer: 'Shipping code...',
+  };
+  return lines[agentId] || 'Working...';
+}
+
+function funStatusDone(agentId: string): string {
+  const lines: Record<string, string> = {
+    ceo: 'Brief locked in',
+    research: 'Intel gathered',
+    product: 'PRD shipped',
+    architect: 'Blueprints ready',
+    developer: 'Code deployed',
+  };
+  return lines[agentId] || 'Done';
 }

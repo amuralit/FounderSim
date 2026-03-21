@@ -44,6 +44,10 @@ export default function FounderSim() {
   const [demoUrl, setDemoUrl] = useState<string | null>(null);
   const [webUrl, setWebUrl] = useState<string | null>(null);
   const [logoBase64, setLogoBase64] = useState<string | null>(null);
+  const [competitiveVisualBase64, setCompetitiveVisualBase64] = useState<string | null>(null);
+  const [marketMapBase64, setMarketMapBase64] = useState<string | null>(null);
+  const [archDiagramBase64, setArchDiagramBase64] = useState<string | null>(null);
+  const [productMockupBase64, setProductMockupBase64] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [ceoChatLoading, setCeoChatLoading] = useState(false);
   const [showArtifacts, setShowArtifacts] = useState(false);
@@ -84,6 +88,7 @@ export default function FounderSim() {
     setDemoUrl(p.demoUrl);
     setWebUrl(p.webUrl);
     setLogoBase64(p.logoBase64);
+    setCompetitiveVisualBase64(p.competitiveVisualBase64 ?? null);
     if (p.statuses) setStatuses(p.statuses);
     if (p.phase === 'delivered') {
       setStatuses({ ceo: 'done', research: 'done', product: 'done', architect: 'done', developer: 'done' });
@@ -101,11 +106,11 @@ export default function FounderSim() {
       name: mission?.substring(0, 40) || 'Untitled',
       mission, createdAt: Date.now(), updatedAt: Date.now(),
       phase, companyBrief, pendingBrief, outputs, chatHistories,
-      decisions, statuses, demoUrl, webUrl, logoBase64,
+      decisions, statuses, demoUrl, webUrl, logoBase64, competitiveVisualBase64,
     };
     saveProject(p);
     setProjects(loadProjects());
-  }, [phase, mission, companyBrief, pendingBrief, outputs, chatHistories, decisions, demoUrl, webUrl, logoBase64, statuses, currentProjectId]);
+  }, [phase, mission, companyBrief, pendingBrief, outputs, chatHistories, decisions, demoUrl, webUrl, logoBase64, competitiveVisualBase64, statuses, currentProjectId]);
 
   function handleNewProject() {
     const p = createNewProject();
@@ -124,6 +129,10 @@ export default function FounderSim() {
     setDemoUrl(null);
     setWebUrl(null);
     setLogoBase64(null);
+    setCompetitiveVisualBase64(null);
+    setMarketMapBase64(null);
+    setArchDiagramBase64(null);
+    setProductMockupBase64(null);
   }
 
   function handleSelectProject(projectId: string) {
@@ -434,9 +443,11 @@ export default function FounderSim() {
         break;
 
       case 'image_ready':
-        if (data.type === 'logo') {
-          setLogoBase64(data.data as string);
-        }
+        if (data.type === 'logo') setLogoBase64(data.data as string);
+        else if (data.type === 'competitive_visual') setCompetitiveVisualBase64(data.data as string);
+        else if (data.type === 'market_map') setMarketMapBase64(data.data as string);
+        else if (data.type === 'architecture_diagram') setArchDiagramBase64(data.data as string);
+        else if (data.type === 'product_mockup') setProductMockupBase64(data.data as string);
         break;
 
       case 'deploy_status':
@@ -706,6 +717,12 @@ export default function FounderSim() {
               chatHistory={chatHistories[selectedAgent!] || []}
               onSendMessage={handleAgentChat}
               onClose={() => setSelectedAgent(null)}
+              logoBase64={logoBase64}
+              competitiveVisual={competitiveVisualBase64}
+              marketMap={marketMapBase64}
+              archDiagram={archDiagramBase64}
+              productMockup={productMockupBase64}
+              agentStatus={statuses[selectedAgent!]}
             />
           </div>
         )}
@@ -719,6 +736,9 @@ export default function FounderSim() {
           demoUrl={demoUrl}
           webUrl={webUrl}
           logoBase64={logoBase64}
+          marketMapBase64={marketMapBase64}
+          archDiagramBase64={archDiagramBase64}
+          productMockupBase64={productMockupBase64}
           onClose={() => setShowArtifacts(false)}
         />
       )}
@@ -731,6 +751,7 @@ export default function FounderSim() {
           demoUrl={demoUrl}
           webUrl={webUrl}
           logoBase64={logoBase64}
+          competitiveVisualBase64={competitiveVisualBase64}
           decisions={decisions}
           companyBrief={companyBrief}
           productOutput={outputs.product || ''}

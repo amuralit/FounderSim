@@ -3,7 +3,7 @@ import { runResearchAgent } from '@/lib/agents/research';
 import { runProductAgent } from '@/lib/agents/product';
 import { runArchitectAgent } from '@/lib/agents/architect';
 import { runDeveloperAgent } from '@/lib/agents/developer';
-import { generateLogo, generateCompetitiveVisual } from '@/lib/image-gen';
+import { generateLogo, generateCompetitiveVisual, generateMarketMap, generateArchitectureDiagram, generateProductMockup } from '@/lib/image-gen';
 
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
@@ -46,6 +46,12 @@ export async function POST(req: NextRequest) {
         send('agent_output', { agent: 'research', output: researchOutput });
         send('agent_done', { agent: 'research' });
 
+        // Fire market map gen in parallel (non-blocking)
+        const marketMapPromise = generateMarketMap(
+          companyBrief.split('\n')[0] || 'startup',
+          researchOutput.substring(0, 300)
+        ).catch(() => null);
+
         // ── PRODUCT AGENT ──
         send('agent_start', { agent: 'product' });
         send('agent_speech', { agent: 'product', text: 'Defining MVP features based on market gaps...' });
@@ -66,6 +72,12 @@ export async function POST(req: NextRequest) {
         }
         send('agent_output', { agent: 'product', output: productOutput });
         send('agent_done', { agent: 'product' });
+
+        // Fire product mockup gen in parallel (non-blocking)
+        const productMockupPromise = generateProductMockup(
+          companyBrief.split('\n')[0] || 'product',
+          productOutput.substring(0, 300)
+        ).catch(() => null);
 
         // ── APPROVAL GATE: MVP SCOPE ──
         send('approval_gate', {
@@ -90,6 +102,11 @@ export async function POST(req: NextRequest) {
         }
         send('agent_output', { agent: 'architect', output: architectOutput });
         send('agent_done', { agent: 'architect' });
+
+        // Fire architecture diagram gen in parallel (non-blocking)
+        const archDiagramPromise = generateArchitectureDiagram(
+          architectOutput.substring(0, 400)
+        ).catch(() => null);
 
         // ── DEVELOPER AGENT ──
         send('agent_start', { agent: 'developer' });
@@ -118,12 +135,23 @@ export async function POST(req: NextRequest) {
         send('agent_done', { agent: 'developer' });
 
         // ── COLLECT PARALLEL IMAGE RESULTS ──
-        const [logo, competitiveVisual] = await Promise.all([logoPromise, competitiveVisualPromise]);
+        const [logo, competitiveVisual, marketMap, archDiagram, productMockup] = await Promise.all([
+          logoPromise, competitiveVisualPromise, marketMapPromise, archDiagramPromise, productMockupPromise,
+        ]);
         if (logo) {
           send('image_ready', { type: 'logo', data: logo });
         }
         if (competitiveVisual) {
           send('image_ready', { type: 'competitive_visual', data: competitiveVisual });
+        }
+        if (marketMap) {
+          send('image_ready', { type: 'market_map', data: marketMap });
+        }
+        if (archDiagram) {
+          send('image_ready', { type: 'architecture_diagram', data: archDiagram });
+        }
+        if (productMockup) {
+          send('image_ready', { type: 'product_mockup', data: productMockup });
         }
 
         // ── DEPLOY STATUS ──

@@ -12,6 +12,7 @@ interface FundraisingKitProps {
   demoUrl: string | null;
   webUrl: string | null;
   logoBase64: string | null;
+  competitiveVisualBase64?: string | null;
   decisions: DecisionEntry[];
   companyBrief: string;
   productOutput: string;
@@ -48,7 +49,7 @@ function generatePitchSlides(brief: string, research: string, product: string): 
 
 export default function FundraisingKit({
   researchOutput, architectOutput, demoUrl, webUrl, logoBase64,
-  decisions, companyBrief, productOutput, onClose,
+  competitiveVisualBase64, decisions, companyBrief, productOutput, onClose,
 }: FundraisingKitProps) {
   const [activeTab, setActiveTab] = useState<TabId>('product');
   const [showPitchDeck, setShowPitchDeck] = useState(false);
@@ -146,6 +147,14 @@ export default function FundraisingKit({
                       style={{ background: '#F8F9FB', border: '1px solid #E8EAF0' }}
                       onClick={() => { setShowPitchDeck(true); }}
                     >
+                      {i === 0 && logoBase64 && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={`data:image/png;base64,${logoBase64}`}
+                          alt="Logo"
+                          className="w-6 h-6 rounded mb-1 mx-auto"
+                        />
+                      )}
                       <div className="font-bold truncate" style={{ color: '#f59e0b' }}>{slide.title}</div>
                     </div>
                   ))}
@@ -154,8 +163,21 @@ export default function FundraisingKit({
             )}
 
             {activeTab === 'research' && (
-              <div className="prose prose-sm max-w-none" style={{ color: '#374151' }}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{researchOutput || 'Research data not yet available.'}</ReactMarkdown>
+              <div>
+                {competitiveVisualBase64 && (
+                  <div className="mb-6 rounded-xl overflow-hidden flex justify-center p-4" style={{ background: '#F8F9FB', border: '1px solid #E8EAF0' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`data:image/png;base64,${competitiveVisualBase64}`}
+                      alt="Competitive positioning"
+                      className="max-w-full max-h-[300px] rounded-lg"
+                      style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}
+                    />
+                  </div>
+                )}
+                <div className="prose prose-sm max-w-none" style={{ color: '#374151' }}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{researchOutput || 'Research data not yet available.'}</ReactMarkdown>
+                </div>
               </div>
             )}
 

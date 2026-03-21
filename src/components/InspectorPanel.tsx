@@ -11,6 +11,12 @@ interface InspectorPanelProps {
   chatHistory: ChatMessage[];
   onSendMessage: (agentId: AgentId, message: string) => void;
   onClose: () => void;
+  logoBase64?: string | null;
+  competitiveVisual?: string | null;
+  marketMap?: string | null;
+  archDiagram?: string | null;
+  productMockup?: string | null;
+  agentStatus?: 'idle' | 'waiting' | 'working' | 'done' | 'error';
 }
 
 /* ------------------------------------------------------------------ */
@@ -168,6 +174,12 @@ export default function InspectorPanel({
   chatHistory,
   onSendMessage,
   onClose,
+  logoBase64,
+  competitiveVisual,
+  marketMap,
+  archDiagram,
+  productMockup,
+  agentStatus,
 }: InspectorPanelProps) {
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -202,9 +214,8 @@ export default function InspectorPanel({
   );
 
   /* ---- Derived status ---- */
-  const isWorking = output === null;
-  const statusLabel = isWorking ? 'Awaiting' : 'Completed';
-  const statusDotColor = isWorking ? '#D1D5DB' : '#22c55e';
+  const statusLabel = agentStatus === 'working' ? 'Working...' : agentStatus === 'done' ? 'Completed' : agentStatus === 'waiting' ? 'In Queue' : agentStatus === 'error' ? 'Error' : output ? 'Completed' : 'Standby';
+  const statusDotColor = agentStatus === 'working' ? agent.color : agentStatus === 'done' ? '#22c55e' : agentStatus === 'error' ? '#ef4444' : output ? '#22c55e' : '#D1D5DB';
 
   return (
     <div
@@ -333,6 +344,107 @@ export default function InspectorPanel({
                 )}
               </div>
             </div>
+
+            {/* Generated images */}
+            {agent.id === 'ceo' && logoBase64 && (
+              <div className="mt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1 h-4 rounded-full" style={{ backgroundColor: agent.color }} />
+                  <h3 className="text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: agent.color }}>
+                    Generated Logo
+                  </h3>
+                </div>
+                <div className="rounded-xl overflow-hidden p-6 flex justify-center" style={{ background: '#F8F9FB', border: '1px solid #E8EAF0' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`data:image/png;base64,${logoBase64}`}
+                    alt="Generated logo"
+                    className="max-w-[160px] max-h-[160px] rounded-lg"
+                    style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {agent.id === 'research' && competitiveVisual && (
+              <div className="mt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1 h-4 rounded-full" style={{ backgroundColor: agent.color }} />
+                  <h3 className="text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: agent.color }}>
+                    Competitive Positioning
+                  </h3>
+                </div>
+                <div className="rounded-xl overflow-hidden p-4 flex justify-center" style={{ background: '#F8F9FB', border: '1px solid #E8EAF0' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`data:image/png;base64,${competitiveVisual}`}
+                    alt="Competitive positioning chart"
+                    className="max-w-full rounded-lg"
+                    style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {agent.id === 'research' && marketMap && (
+              <div className="mt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1 h-4 rounded-full" style={{ backgroundColor: agent.color }} />
+                  <h3 className="text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: agent.color }}>
+                    Market Map
+                  </h3>
+                </div>
+                <div className="rounded-xl overflow-hidden p-4 flex justify-center" style={{ background: '#F8F9FB', border: '1px solid #E8EAF0' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`data:image/png;base64,${marketMap}`}
+                    alt="Market map"
+                    className="max-w-full rounded-lg"
+                    style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {agent.id === 'product' && productMockup && (
+              <div className="mt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1 h-4 rounded-full" style={{ backgroundColor: agent.color }} />
+                  <h3 className="text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: agent.color }}>
+                    Product Mockup
+                  </h3>
+                </div>
+                <div className="rounded-xl overflow-hidden p-4 flex justify-center" style={{ background: '#F8F9FB', border: '1px solid #E8EAF0' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`data:image/png;base64,${productMockup}`}
+                    alt="Product mockup"
+                    className="max-w-full rounded-lg"
+                    style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {agent.id === 'architect' && archDiagram && (
+              <div className="mt-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1 h-4 rounded-full" style={{ backgroundColor: agent.color }} />
+                  <h3 className="text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: agent.color }}>
+                    Architecture Diagram
+                  </h3>
+                </div>
+                <div className="rounded-xl overflow-hidden p-4 flex justify-center" style={{ background: '#F8F9FB', border: '1px solid #E8EAF0' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`data:image/png;base64,${archDiagram}`}
+                    alt="Architecture diagram"
+                    className="max-w-full rounded-lg"
+                    style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           /* --- Empty state --- */
