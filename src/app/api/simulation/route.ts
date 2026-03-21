@@ -167,13 +167,22 @@ export async function POST(req: NextRequest) {
           devResult = { summary: 'Code generation encountered an issue.', demoUrl: null, webUrl: null };
           send('error', { agent: 'developer', message: 'Developer agent encountered an issue.' });
         }
+        const devSummary = devResult.demoUrl
+          ? `Code generated and deploying to Vercel. Demo: ${devResult.demoUrl}`
+          : devResult.webUrl
+            ? `Code generated via v0. v0 is still building — check progress: ${devResult.webUrl}`
+            : devResult.rawCode
+              ? 'Code generated via Gemini (v0 unavailable). Ready for manual deployment.'
+              : devResult.summary;
+
         send('agent_output', {
           agent: 'developer',
-          output: devResult.summary,
+          output: devSummary,
           demoUrl: devResult.demoUrl,
           webUrl: devResult.webUrl,
           rawCode: devResult.rawCode,
         });
+        send('agent_speech', { agent: 'developer', text: devResult.webUrl ? 'Code sent to v0 — building in progress...' : 'Code generation complete.' });
         send('agent_done', { agent: 'developer' });
 
         // ── COLLECT PARALLEL IMAGE RESULTS ──

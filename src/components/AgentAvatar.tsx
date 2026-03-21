@@ -162,10 +162,10 @@ function funStatusWorking(agentId: string): string {
 function funStatusDone(agentId: string): string {
   const lines: Record<string, string> = {
     ceo: 'Brief locked in',
-    research: 'Intel gathered',
+    research: 'Intel delivered',
     product: 'PRD shipped',
     architect: 'Blueprints ready',
-    developer: 'Code deployed',
+    developer: 'Code sent to v0',
   };
   return lines[agentId] || 'Done';
 }
