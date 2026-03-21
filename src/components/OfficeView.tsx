@@ -72,8 +72,8 @@ export default function OfficeView({ agents, statuses, positions, speeches, sele
         );
       })}
 
-      {/* Connection lines */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-[1] office-connections">
+      {/* Connection lines — hidden, status shown via agent labels + progress bar */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-[1] office-connections" style={{ display: 'none' }}>
         <defs>
           {agents.filter(a => a.id !== 'ceo').map(agent => (
             <linearGradient
