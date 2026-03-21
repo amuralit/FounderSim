@@ -7,7 +7,6 @@ import { runArchitectAgent } from '@/lib/agents/architect';
 import { runDeveloperAgent } from '@/lib/agents/developer';
 import { generateTestCases, runTests, generateQAReport } from '@/lib/agents/tester';
 import { generateLogo, generateCompetitiveVisual, generateMarketMap, generateArchitectureDiagram, generateProductMockup } from '@/lib/image-gen';
-import { CEO_SYSTEM_PROMPT } from '@/lib/prompts';
 
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
@@ -50,18 +49,33 @@ export async function POST(req: NextRequest) {
         send('agent_output', { agent: 'research', output: researchOutput });
         send('agent_done', { agent: 'research' });
 
-        // ── CEO REVIEWS RESEARCH ──
-        send('agent_speech', { agent: 'ceo', text: 'Reviewing competitive intelligence...' });
+        // ── DEBATE: CEO + Product review Research ──
+        send('agent_speech', { agent: 'ceo', text: 'Reviewing Scout\'s research...' });
+
+        // CEO reviews
+        let ceoResearchVerdict = '';
         try {
-          const { text: ceoResearchReview } = await generateText({
+          const { text } = await generateText({
             model: google('gemini-3-flash-preview'),
-            system: CEO_SYSTEM_PROMPT + '\n\nYou are reviewing your Research analyst\'s work. Be constructive but demanding. Point out gaps or weak spots in 2-3 sentences. If the research is solid, say so briefly and highlight the key insight.',
-            prompt: `Company Brief:\n${companyBrief}\n\nResearch Output:\n${researchOutput.substring(0, 2000)}\n\nGive your CEO review in 2-3 sentences. No markdown, plain text.`,
+            system: 'You are Nova, the CEO. Review the research analyst\'s competitive intelligence. In 2 sentences: is the data solid? Any gaps? End with GO or NEEDS WORK.',
+            prompt: `Brief: ${companyBrief.substring(0, 500)}\n\nResearch:\n${researchOutput.substring(0, 2000)}`,
           });
-          send('agent_speech', { agent: 'ceo', text: ceoResearchReview.substring(0, 150) });
-        } catch (e) {
-          console.error('CEO research review error (non-blocking):', e);
-        }
+          ceoResearchVerdict = text;
+          send('agent_speech', { agent: 'ceo', text: text.substring(0, 200) });
+        } catch { ceoResearchVerdict = 'GO'; }
+
+        // Product agent previews research for their needs
+        try {
+          const { text } = await generateText({
+            model: google('gemini-3-flash-preview'),
+            system: 'You are Sage, the Product manager. Review the research data. In 2 sentences: does this give you enough to write a PRD? Any missing data you need? End with GO or REQUEST.',
+            prompt: `Brief: ${companyBrief.substring(0, 500)}\n\nResearch:\n${researchOutput.substring(0, 2000)}`,
+          });
+          send('agent_speech', { agent: 'product', text: text.substring(0, 200) });
+        } catch { /* non-blocking */ }
+
+        // CEO gives GO
+        send('agent_speech', { agent: 'ceo', text: ceoResearchVerdict.includes('NEEDS WORK') ? 'Noted gaps, but proceeding. Scout, refine in v2.' : 'Research approved. Sage, you\'re up.' });
 
         // Fire market map gen in parallel (non-blocking)
         const marketMapPromise = generateMarketMap(
@@ -90,18 +104,31 @@ export async function POST(req: NextRequest) {
         send('agent_output', { agent: 'product', output: productOutput });
         send('agent_done', { agent: 'product' });
 
-        // ── CEO REVIEWS PRODUCT ──
-        send('agent_speech', { agent: 'ceo', text: 'Checking product scope...' });
+        // ── DEBATE: CEO + Architect review Product ──
+        send('agent_speech', { agent: 'ceo', text: 'Reviewing Sage\'s PRD...' });
+
+        let ceoProductVerdict = '';
         try {
-          const { text: ceoProductReview } = await generateText({
+          const { text } = await generateText({
             model: google('gemini-3-flash-preview'),
-            system: CEO_SYSTEM_PROMPT + '\n\nYou are reviewing your Product manager\'s PRD. Push back if scope is too big or the killer feature isn\'t clear enough. 2-3 sentences.',
-            prompt: `Company Brief:\n${companyBrief}\n\nPRD:\n${productOutput.substring(0, 2000)}\n\nGive your CEO review in 2-3 sentences. No markdown, plain text.`,
+            system: 'You are Nova, the CEO. Review the PRD. In 2 sentences: is the MVP scope right? Is the killer feature clear? End with GO or NEEDS WORK.',
+            prompt: `Brief: ${companyBrief.substring(0, 500)}\n\nPRD:\n${productOutput.substring(0, 2000)}`,
           });
-          send('agent_speech', { agent: 'ceo', text: ceoProductReview.substring(0, 150) });
-        } catch (e) {
-          console.error('CEO product review error (non-blocking):', e);
-        }
+          ceoProductVerdict = text;
+          send('agent_speech', { agent: 'ceo', text: text.substring(0, 200) });
+        } catch { ceoProductVerdict = 'GO'; }
+
+        // Architect previews PRD for feasibility
+        try {
+          const { text } = await generateText({
+            model: google('gemini-3-flash-preview'),
+            system: 'You are Atlas, the Architect. Review the PRD for technical feasibility. In 2 sentences: can this be built in 2 weeks? Any features that are technically risky? End with GO or FLAG.',
+            prompt: `Brief: ${companyBrief.substring(0, 500)}\n\nPRD:\n${productOutput.substring(0, 2000)}`,
+          });
+          send('agent_speech', { agent: 'architect', text: text.substring(0, 200) });
+        } catch { /* non-blocking */ }
+
+        send('agent_speech', { agent: 'ceo', text: ceoProductVerdict.includes('NEEDS WORK') ? 'Scope concerns noted. Proceeding with caveats.' : 'PRD approved. Atlas, design the system.' });
 
         // Fire product mockup gen in parallel (non-blocking)
         const productMockupPromise = generateProductMockup(
@@ -133,18 +160,31 @@ export async function POST(req: NextRequest) {
         send('agent_output', { agent: 'architect', output: architectOutput });
         send('agent_done', { agent: 'architect' });
 
-        // ── CEO REVIEWS ARCHITECTURE ──
-        send('agent_speech', { agent: 'ceo', text: 'Reviewing architecture decisions...' });
+        // ── DEBATE: CEO + Developer review Architecture ──
+        send('agent_speech', { agent: 'ceo', text: 'Reviewing Atlas\'s architecture...' });
+
+        let ceoArchVerdict = '';
         try {
-          const { text: ceoArchReview } = await generateText({
+          const { text } = await generateText({
             model: google('gemini-3-flash-preview'),
-            system: CEO_SYSTEM_PROMPT + '\n\nYou are reviewing your Architect\'s design. Flag anything over-engineered or risky for an MVP. 2-3 sentences.',
-            prompt: `Company Brief:\n${companyBrief}\n\nArchitecture:\n${architectOutput.substring(0, 2000)}\n\nGive your CEO review in 2-3 sentences. No markdown, plain text.`,
+            system: 'You are Nova, the CEO. Review the architecture. In 2 sentences: is this overengineered for an MVP? Is the agent endpoint design clear? End with GO or SIMPLIFY.',
+            prompt: `Brief: ${companyBrief.substring(0, 500)}\n\nArchitecture:\n${architectOutput.substring(0, 2000)}`,
           });
-          send('agent_speech', { agent: 'ceo', text: ceoArchReview.substring(0, 150) });
-        } catch (e) {
-          console.error('CEO architecture review error (non-blocking):', e);
-        }
+          ceoArchVerdict = text;
+          send('agent_speech', { agent: 'ceo', text: text.substring(0, 200) });
+        } catch { ceoArchVerdict = 'GO'; }
+
+        // Developer previews architecture for buildability
+        try {
+          const { text } = await generateText({
+            model: google('gemini-3-flash-preview'),
+            system: 'You are Pixel, the Developer. Review the architecture. In 2 sentences: can you build this? Any specs missing or unclear? End with GO or CLARIFY.',
+            prompt: `Brief: ${companyBrief.substring(0, 500)}\n\nArchitecture:\n${architectOutput.substring(0, 2000)}`,
+          });
+          send('agent_speech', { agent: 'developer', text: text.substring(0, 200) });
+        } catch { /* non-blocking */ }
+
+        send('agent_speech', { agent: 'ceo', text: ceoArchVerdict.includes('SIMPLIFY') ? 'Simplification noted. Pixel, build smart.' : 'Architecture approved. Pixel, ship it.' });
 
         // Fire architecture diagram gen in parallel (non-blocking)
         const archDiagramPromise = generateArchitectureDiagram(
