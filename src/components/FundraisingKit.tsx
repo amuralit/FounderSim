@@ -381,7 +381,14 @@ export default function FundraisingKit({
         </div>
       </div>
 
-      {showPitchDeck && <PitchDeck slides={pitchSlides} onClose={() => setShowPitchDeck(false)} />}
+      {showPitchDeck && (
+        <PitchDeck
+          slides={pitchSlides}
+          onClose={() => setShowPitchDeck(false)}
+          logoBase64={logoBase64}
+          competitiveVisual={competitiveVisualBase64}
+        />
+      )}
     </>
   );
 }
