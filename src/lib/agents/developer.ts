@@ -26,30 +26,58 @@ export interface DevResult {
 }
 
 // ── Build a concise v0 prompt from full specs ──
-async function buildV0Prompt(specs: DevSpecs): Promise<string> {
-  // Use Gemini to distill the full specs into a concise v0 build prompt
-  const { text } = await generateText({
-    model: google('gemini-3-flash-preview'),
-    system: `You are a prompt engineer. Distill complex product specs into a concise Next.js app build prompt for v0.
-Output a SHORT prompt (under 2000 chars) that tells v0 exactly what to build. Include:
-1. App name and one-sentence description
-2. The EXACT /api/agent route code (using @google/genai SDK)
-3. UI: what pages, what the main input/output looks like
-4. No integrations, no Supabase, no Stripe`,
-    prompt: `Distill these specs into a concise v0 build prompt:
+function buildV0Prompt(specs: DevSpecs): string {
+  // Extract key info from specs
+  const missionMatch = specs.companyBrief.match(/Mission[:\s]*([^\n]+)/i);
+  const mission = missionMatch?.[1]?.trim() || 'AI-powered research tool';
+  const wedgeMatch = specs.companyBrief.match(/Wedge Product[:\s]*([^\n]+)/i);
+  const wedge = wedgeMatch?.[1]?.trim() || 'A web app with search input and AI results';
 
-COMPANY: ${specs.companyBrief.substring(0, 500)}
-PRODUCT FEATURES: ${specs.prd.substring(0, 800)}
-ARCHITECTURE: ${specs.architectureDoc.substring(0, 800)}
+  return `Build a Next.js 15 app: ${mission}
 
-The /api/agent route MUST use this pattern:
+Product: ${wedge}
+
+The app has:
+1. A landing page (/) with a search/input area and results display
+2. An /api/agent route that does the AI work
+
+EXACT /api/agent/route.ts code — use this VERBATIM:
+\`\`\`typescript
+import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY! });
-// Then: ai.models.generateContent({ model: 'gemini-3.1-pro-preview', contents: ..., config: { tools: [{ googleSearch: {} }] } })
 
-Generate a prompt under 2000 characters. Include the EXACT API route code.`,
-  });
-  return text;
+export const maxDuration = 60;
+
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY! });
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const input = body.query || body.ticker || body.url || body.input || '';
+    if (!input) return NextResponse.json({ error: 'input required' }, { status: 400 });
+
+    const res = await ai.models.generateContent({
+      model: 'gemini-3.1-pro-preview',
+      contents: 'Analyze: ' + input + '. ${mission}. Return detailed JSON with your analysis.',
+      config: { tools: [{ googleSearch: {} }] },
+    });
+
+    const text = res.text || '';
+    try {
+      const match = text.match(/\\{[\\s\\S]*\\}/);
+      if (match) return NextResponse.json(JSON.parse(match[0]));
+    } catch {}
+    return NextResponse.json({ result: text.substring(0, 2000) });
+  } catch (e) {
+    return NextResponse.json({ error: String(e).substring(0, 200) }, { status: 500 });
+  }
+}
+\`\`\`
+
+UI requirements from PRD:
+${specs.prd.substring(0, 600)}
+
+Use shadcn/ui. Dark or light theme. Clean design.`;
 }
 
 // ── Developer Agent ──
