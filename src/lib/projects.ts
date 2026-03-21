@@ -17,6 +17,8 @@ export interface Project {
   webUrl: string | null;
   logoBase64: string | null;
   competitiveVisualBase64: string | null;
+  v0ChatId: string | null;
+  v0ProjectId: string | null;
 }
 
 const STORAGE_KEY = 'foundersim-projects';
@@ -72,6 +74,8 @@ export function createNewProject(): Project {
     webUrl: null,
     logoBase64: null,
     competitiveVisualBase64: null,
+    v0ChatId: null,
+    v0ProjectId: null,
   };
 }
 
@@ -99,6 +103,8 @@ export function migrateOldState(): Project | null {
       webUrl: s.webUrl || null,
       logoBase64: s.logoBase64 || null,
       competitiveVisualBase64: s.competitiveVisualBase64 || null,
+      v0ChatId: s.v0ChatId || null,
+      v0ProjectId: s.v0ProjectId || null,
     };
     // Remove old key
     localStorage.removeItem('foundersim-state');

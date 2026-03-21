@@ -243,6 +243,8 @@ export async function POST(req: NextRequest) {
         send('deploy_status', {
           demoUrl: devResult.demoUrl,
           webUrl: devResult.webUrl,
+          v0ChatId: devResult.v0ChatId || null,
+          v0ProjectId: devResult.v0ProjectId || null,
           status: devResult.demoUrl ? 'deployed' : 'code_generated',
         });
 

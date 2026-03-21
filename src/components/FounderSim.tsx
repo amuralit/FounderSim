@@ -141,6 +141,21 @@ export default function FounderSim() {
   }
 
   function handleDeleteProject(projectId: string) {
+    // Find project before deleting to get v0 IDs for cleanup
+    const projectToDelete = projects.find(p => p.id === projectId);
+
+    // Fire server-side cleanup (v0 chat/project deletion) — non-blocking
+    if (projectToDelete?.v0ChatId || projectToDelete?.v0ProjectId) {
+      fetch('/api/project-cleanup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          v0ChatId: projectToDelete.v0ChatId,
+          v0ProjectId: projectToDelete.v0ProjectId,
+        }),
+      }).catch(console.error);
+    }
+
     deleteProject(projectId);
     const remaining = loadProjects();
     setProjects(remaining);

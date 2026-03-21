@@ -16,6 +16,8 @@ export interface DevResult {
   demoUrl: string | null;
   webUrl: string | null;
   rawCode?: string;
+  v0ChatId?: string;
+  v0ProjectId?: string;
   agentEndpoint?: {
     route: string;
     inputExample: Record<string, unknown>;
@@ -65,6 +67,8 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
             summary: `Generated ${fileCount} files and deployed via v0`,
             demoUrl: deployData.webUrl as string,
             webUrl: (chatData.webUrl as string) || null,
+            v0ChatId: (chatData.id as string) || undefined,
+            v0ProjectId: (chatData.projectId as string) || undefined,
           };
         }
       } catch (deployErr) {
@@ -77,6 +81,8 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
       summary: `Generated ${fileCount} files via v0`,
       demoUrl: (latestVersion?.demoUrl as string) || null,
       webUrl: (chatData.webUrl as string) || null,
+      v0ChatId: (chatData.id as string) || undefined,
+      v0ProjectId: (chatData.projectId as string) || undefined,
     };
   } catch (err) {
     console.error('v0 SDK failed, falling back to Gemini:', err);
