@@ -191,6 +191,20 @@ export async function POST(req: NextRequest) {
           architectOutput.substring(0, 400)
         ).catch(() => null);
 
+        // ── COLLECT IMAGES (before developer, so they show during build) ──
+        try {
+          const [logo, competitiveVisual, marketMap, archDiagram, productMockup] = await Promise.all([
+            logoPromise, competitiveVisualPromise, marketMapPromise, archDiagramPromise, productMockupPromise,
+          ]);
+          if (logo) send('image_ready', { type: 'logo', data: logo });
+          if (competitiveVisual) send('image_ready', { type: 'competitive_visual', data: competitiveVisual });
+          if (marketMap) send('image_ready', { type: 'market_map', data: marketMap });
+          if (archDiagram) send('image_ready', { type: 'architecture_diagram', data: archDiagram });
+          if (productMockup) send('image_ready', { type: 'product_mockup', data: productMockup });
+        } catch (imgErr) {
+          console.error('Image collection error:', imgErr);
+        }
+
         // ── DEVELOPER AGENT ──
         send('agent_start', { agent: 'developer' });
         send('agent_speech', { agent: 'developer', text: 'Building the app with v0 Platform API...' });
@@ -259,25 +273,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // ── COLLECT PARALLEL IMAGE RESULTS ──
-        const [logo, competitiveVisual, marketMap, archDiagram, productMockup] = await Promise.all([
-          logoPromise, competitiveVisualPromise, marketMapPromise, archDiagramPromise, productMockupPromise,
-        ]);
-        if (logo) {
-          send('image_ready', { type: 'logo', data: logo });
-        }
-        if (competitiveVisual) {
-          send('image_ready', { type: 'competitive_visual', data: competitiveVisual });
-        }
-        if (marketMap) {
-          send('image_ready', { type: 'market_map', data: marketMap });
-        }
-        if (archDiagram) {
-          send('image_ready', { type: 'architecture_diagram', data: archDiagram });
-        }
-        if (productMockup) {
-          send('image_ready', { type: 'product_mockup', data: productMockup });
-        }
+        // Images already collected before developer agent started
 
         // ── DEPLOY STATUS ──
         send('deploy_status', {
