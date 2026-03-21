@@ -191,26 +191,20 @@ export async function POST(req: NextRequest) {
           architectOutput.substring(0, 400)
         ).catch(() => null);
 
-        // ── COLLECT IMAGES (await with 20s timeout so they arrive before stream closes) ──
+        // ── IMAGES: send each as it arrives (don't block pipeline) ──
         const withTimeout = (p: Promise<string | null>, ms: number) =>
           Promise.race([p, new Promise<null>(r => setTimeout(() => r(null), ms))]);
 
-        try {
-          const [logo, compVis, mktMap, archDia, prodMock] = await Promise.all([
-            withTimeout(logoPromise, 20000),
-            withTimeout(competitiveVisualPromise, 20000),
-            withTimeout(marketMapPromise, 20000),
-            withTimeout(archDiagramPromise, 20000),
-            withTimeout(productMockupPromise, 20000),
-          ]);
-          if (logo) send('image_ready', { type: 'logo', data: logo });
-          if (compVis) send('image_ready', { type: 'competitive_visual', data: compVis });
-          if (mktMap) send('image_ready', { type: 'market_map', data: mktMap });
-          if (archDia) send('image_ready', { type: 'architecture_diagram', data: archDia });
-          if (prodMock) send('image_ready', { type: 'product_mockup', data: prodMock });
-        } catch { /* timeout — continue without images */ }
+        // Fire image sends in background — they'll arrive during developer build
+        const imageCollectionPromise = Promise.allSettled([
+          withTimeout(logoPromise, 25000).then(d => { if (d) send('image_ready', { type: 'logo', data: d }); }),
+          withTimeout(competitiveVisualPromise, 25000).then(d => { if (d) send('image_ready', { type: 'competitive_visual', data: d }); }),
+          withTimeout(marketMapPromise, 25000).then(d => { if (d) send('image_ready', { type: 'market_map', data: d }); }),
+          withTimeout(archDiagramPromise, 25000).then(d => { if (d) send('image_ready', { type: 'architecture_diagram', data: d }); }),
+          withTimeout(productMockupPromise, 25000).then(d => { if (d) send('image_ready', { type: 'product_mockup', data: d }); }),
+        ]).catch(() => {});
 
-        // ── DEVELOPER AGENT (starts immediately, doesn't wait for images) ──
+        // ── DEVELOPER AGENT (starts immediately, images arrive in parallel) ──
         send('agent_start', { agent: 'developer' });
         send('agent_speech', { agent: 'developer', text: 'Building the app with v0 Platform API...' });
 
@@ -278,7 +272,8 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Images collected asynchronously (non-blocking, with 15s timeout)
+        // Wait for images before closing stream (they've been generating in parallel)
+        await imageCollectionPromise.catch(() => {});
 
         // ── DEPLOY STATUS ──
         send('deploy_status', {
