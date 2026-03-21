@@ -20,7 +20,7 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
   };
 
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center" style={{ background: '#08080e' }}>
+    <div className="absolute inset-0 z-20 flex items-center justify-center" style={{ background: '#0f1117' }}>
       {/* Subtle gradient orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-[0.04]"
@@ -68,10 +68,10 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
             onKeyDown={e => e.key === 'Enter' && handleSubmit()}
             placeholder="e.g. A tool that helps freelancers track invoices and get paid faster"
             autoFocus
-            className="w-full h-14 pl-5 pr-36 rounded-2xl text-[15px] outline-none transition-all duration-300 text-white placeholder:text-[#444]"
+            className="w-full h-14 pl-5 pr-36 rounded-2xl text-[15px] outline-none transition-all duration-300 text-white placeholder:text-[#555]"
             style={{
-              background: '#111118',
-              border: '1px solid #222',
+              background: '#1a1f2e',
+              border: '1px solid #2a3040',
             }}
             onFocus={e => {
               e.currentTarget.style.borderColor = '#f59e0b44';
@@ -105,16 +105,16 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
               className="px-4 py-2 rounded-full text-xs cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
               style={{
                 background: 'transparent',
-                border: '1px solid #222',
-                color: '#666',
+                border: '1px solid #2a3040',
+                color: '#8b92a0',
               }}
               onMouseEnter={e => {
-                (e.target as HTMLElement).style.borderColor = '#444';
-                (e.target as HTMLElement).style.color = '#aaa';
+                (e.target as HTMLElement).style.borderColor = '#3a4555';
+                (e.target as HTMLElement).style.color = '#c8cdd5';
               }}
               onMouseLeave={e => {
-                (e.target as HTMLElement).style.borderColor = '#222';
-                (e.target as HTMLElement).style.color = '#666';
+                (e.target as HTMLElement).style.borderColor = '#2a3040';
+                (e.target as HTMLElement).style.color = '#8b92a0';
               }}
             >
               {ex}

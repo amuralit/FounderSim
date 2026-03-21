@@ -510,11 +510,11 @@ export default function FounderSim() {
   const showProgressBar = phase === 'pipeline' || phase === 'delivered';
 
   return (
-    <div className="w-full h-screen flex flex-col overflow-hidden" style={{ background: '#08080e' }}>
+    <div className="w-full h-screen flex flex-col overflow-hidden" style={{ background: '#0f1117' }}>
       {/* Header */}
       <header
         className="shrink-0"
-        style={{ background: '#0c0c14' }}
+        style={{ background: '#141820' }}
       >
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center gap-3">
@@ -598,7 +598,7 @@ export default function FounderSim() {
 
         {/* Agent progress bar */}
         {showProgressBar && (
-          <div className="flex w-full h-1 gap-px" style={{ background: '#08080e' }}>
+          <div className="flex w-full h-1 gap-px" style={{ background: '#0f1117' }}>
             {agentProgress.map(seg => (
               <div
                 key={seg.id}

@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --bg-primary: #08080e;
-  --bg-secondary: #0c0c14;
-  --bg-card: #12121a;
-  --border: #1e1e2e;
-  --border-hover: #2a2a3a;
-  --text-primary: #e2e2f0;
-  --text-secondary: #888;
-  --text-muted: #555;
+  --bg-primary: #0f1117;
+  --bg-secondary: #151921;
+  --bg-card: #1a1f2e;
+  --border: #2a3040;
+  --border-hover: #3a4555;
+  --text-primary: #f0f2f5;
+  --text-secondary: #9ca3b0;
+  --text-muted: #6b7280;
 }
 
 body {
@@ -69,7 +69,7 @@ body {
   position: relative;
   width: 100%;
   height: 100%;
-  background: #07070d;
+  background: #0d1017;
   overflow: hidden;
 }
 
@@ -114,14 +114,14 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 16px;
-  background: linear-gradient(145deg, rgba(255,255,255,0.025), rgba(255,255,255,0.008));
-  border: 1px solid rgba(255,255,255,0.04);
+  background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255,255,255,0.07);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .office-zone:hover .office-zone-inner {
-  background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
-  border-color: rgba(255,255,255,0.07);
+  background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025));
+  border-color: rgba(255,255,255,0.1);
 }
 
 .office-zone--active .office-zone-inner {
@@ -164,7 +164,7 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #2a2a3a;
+  color: #4a5068;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -174,7 +174,7 @@ body {
 }
 
 .office-zone:hover .office-zone-label {
-  color: #444;
+  color: #6b7590;
 }
 
 .office-zone--active .office-zone-label {
@@ -182,7 +182,7 @@ body {
 }
 
 .office-zone--done .office-zone-label {
-  color: #2d5a3f;
+  color: #4ade80aa;
 }
 
 .corner-accent {
@@ -249,7 +249,7 @@ body {
   top: 2px;
   left: 2px;
   object-fit: cover;
-  background: #14141e;
+  background: #1a1f2e;
 }
 
 @keyframes orbit {
