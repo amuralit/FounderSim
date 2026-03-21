@@ -75,7 +75,8 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
 - Add @google/genai to dependencies.
 - The GOOGLE_GENERATIVE_AI_API_KEY env var is already set in Vercel.
 - NEVER use Vercel AI Gateway (ai-gateway.vercel.sh) — it will cause server errors.
-- NEVER use deprecated models (gemini-2.0-flash, gemini-1.5-flash, gemini-pro) — they return 404.`,
+- NEVER use deprecated models (gemini-2.0-flash, gemini-1.5-flash, gemini-pro) — they return 404.
+- Use standard Next.js App Router structure: app/ directory at root or src/app/. Do NOT put files in non-standard locations.`,
         system: DEVELOPER_SYSTEM_PROMPT,
       }), 120000); // 120s timeout
     } catch (timeoutErr) {
