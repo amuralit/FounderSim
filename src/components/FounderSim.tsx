@@ -107,6 +107,7 @@ export default function FounderSim() {
       mission, createdAt: Date.now(), updatedAt: Date.now(),
       phase, companyBrief, pendingBrief, outputs, chatHistories,
       decisions, statuses, demoUrl, webUrl, logoBase64, competitiveVisualBase64,
+      v0ChatId: null, v0ProjectId: null,
     };
     saveProject(p);
     setProjects(loadProjects());
