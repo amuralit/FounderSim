@@ -89,7 +89,7 @@ Every generated product MUST have a \`/api/agent\` route. This is the agent endp
 - Returns structured JSON output (define a TypeScript output schema)
 - The web UI is just an interface that calls this endpoint
 - The agent works headlessly too — any HTTP client can call it
-Example: POST /api/agent with { "url": "https://competitor.com" } returns { "battleCard": { "company": "...", "strengths": [...], "weaknesses": [...], "pricing": "...", "objections": [...], "winThemes": [...] } }
+The input/output schema should match THIS SPECIFIC PRODUCT's use case — design it based on the PRD features, not a generic example. The agent endpoint IS the product's core intelligence.
 
 System Design (Mermaid):
 \`\`\`mermaid

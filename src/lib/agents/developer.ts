@@ -34,7 +34,11 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
     const project = await v0.projects.create({ name: 'foundersim-gen' });
     const chat = await v0.chats.create({
       projectId: project.id,
-      message: taskPrompt,
+      message: taskPrompt + `\n\nCRITICAL BUILD RULES:
+- Do NOT add Supabase integration or Stripe integration via v0's integration system. Instead, use @supabase/supabase-js directly with environment variables.
+- Do NOT prompt for any integrations. Use plain npm packages and env vars for all external services.
+- The app must build and deploy without any manual intervention or integration approvals.
+- Use fetch() or SDK clients directly — never rely on v0 platform integrations.`,
       system: DEVELOPER_SYSTEM_PROMPT,
     });
     const chatData = chat as Record<string, unknown>;
