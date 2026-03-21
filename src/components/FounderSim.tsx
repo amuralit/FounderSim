@@ -25,7 +25,7 @@ const initialPositions: PositionMap = Object.fromEntries(
 
 const PIPELINE_ORDER: AgentId[] = ['research', 'product', 'architect', 'developer'];
 
-const GO_KEYWORDS = /^(go|start|build|proceed|yes|approved|lgtm|let'?s go|do it|ship it|launch|begin|kick it off|make it happen)$/i;
+const GO_KEYWORDS = /\b(go|start|build|proceed|yes|approved|lgtm|let'?s go|do it|ship it|launch|begin|kick it off|make it happen|sounds good|looks good|perfect|love it|great|run|execute)\b/i;
 
 export default function FounderSim() {
   const [phase, setPhase] = useState<SimPhase>('idle');
