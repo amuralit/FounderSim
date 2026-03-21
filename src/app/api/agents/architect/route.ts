@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       const result = await runArchitectAgentStructured(companyBrief, competitiveAnalysis, prd);
       return NextResponse.json({
         agent: 'architect',
-        name: 'James Okonkwo',
+        name: 'Atlas',
         structured: result.structured,
         markdown: result.markdown,
       });
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       const output = await runArchitectAgent(companyBrief, competitiveAnalysis, prd);
       return NextResponse.json({
         agent: 'architect',
-        name: 'James Okonkwo',
+        name: 'Atlas',
         structured: null,
         markdown: output,
       });

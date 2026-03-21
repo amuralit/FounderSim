@@ -16,14 +16,14 @@ type StatusMap = Record<AgentId, AgentStatus>;
 type PositionMap = Record<AgentId, { x: number; y: number }>;
 
 const initialStatuses: StatusMap = {
-  ceo: 'idle', research: 'idle', product: 'idle', architect: 'idle', developer: 'idle',
+  ceo: 'idle', research: 'idle', product: 'idle', architect: 'idle', developer: 'idle', tester: 'idle',
 };
 
 const initialPositions: PositionMap = Object.fromEntries(
   AGENTS.map(a => [a.id, a.defaultPosition])
 ) as PositionMap;
 
-const PIPELINE_ORDER: AgentId[] = ['research', 'product', 'architect', 'developer'];
+const PIPELINE_ORDER: AgentId[] = ['research', 'product', 'architect', 'developer', 'tester'];
 
 const GO_KEYWORDS = /\b(go|start|build|proceed|yes|approved|lgtm|let'?s go|do it|ship it|launch|begin|kick it off|make it happen|sounds good|looks good|perfect|love it|great|run|execute)\b/i;
 
@@ -91,7 +91,7 @@ export default function FounderSim() {
     setCompetitiveVisualBase64(p.competitiveVisualBase64 ?? null);
     if (p.statuses) setStatuses(p.statuses);
     if (p.phase === 'delivered') {
-      setStatuses({ ceo: 'done', research: 'done', product: 'done', architect: 'done', developer: 'done' });
+      setStatuses({ ceo: 'done', research: 'done', product: 'done', architect: 'done', developer: 'done', tester: 'done' });
     }
     setSelectedAgent(null);
     setSpeeches({});
@@ -179,7 +179,7 @@ export default function FounderSim() {
     if (phase === 'idle') return null;
     if (phase === 'ceo_conversation') {
       if (pendingBrief) return 'Brief ready. Say "go" to start building.';
-      return 'Chatting with Ada Chen...';
+      return 'Chatting with Nova...';
     }
     if (phase === 'pipeline') {
       if (activeAgent) {
@@ -189,6 +189,7 @@ export default function FounderSim() {
           product: 'is writing the product spec...',
           architect: 'is designing the architecture...',
           developer: 'is generating code...',
+          tester: 'is running E2E tests...',
         };
         return `${activeAgent.name} ${verb[activeAgent.id as AgentId]}`;
       }
@@ -345,6 +346,7 @@ export default function FounderSim() {
       product: 'waiting',
       architect: 'waiting',
       developer: 'waiting',
+      tester: 'waiting',
     });
     setSpeech('ceo', 'Team, you have your brief. Let\'s build this company.');
 
@@ -460,7 +462,7 @@ export default function FounderSim() {
           setPhase('delivered');
           setStatuses({
             ceo: 'done', research: 'done', product: 'done',
-            architect: 'done', developer: 'done',
+            architect: 'done', developer: 'done', tester: 'done',
           });
           setSpeech('ceo', 'The company is built. Open the Fundraising Kit to see everything.');
         }

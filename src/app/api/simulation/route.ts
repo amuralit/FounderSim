@@ -5,6 +5,7 @@ import { runResearchAgent } from '@/lib/agents/research';
 import { runProductAgent } from '@/lib/agents/product';
 import { runArchitectAgent } from '@/lib/agents/architect';
 import { runDeveloperAgent } from '@/lib/agents/developer';
+import { generateTestCases, runTests, generateQAReport } from '@/lib/agents/tester';
 import { generateLogo, generateCompetitiveVisual, generateMarketMap, generateArchitectureDiagram, generateProductMockup } from '@/lib/image-gen';
 import { CEO_SYSTEM_PROMPT } from '@/lib/prompts';
 
@@ -184,6 +185,39 @@ export async function POST(req: NextRequest) {
         });
         send('agent_speech', { agent: 'developer', text: devResult.webUrl ? 'Code sent to v0 — building in progress...' : 'Code generation complete.' });
         send('agent_done', { agent: 'developer' });
+
+        // ── TESTING AGENT ──
+        if (devResult.demoUrl) {
+          send('agent_start', { agent: 'tester' });
+          send('agent_speech', { agent: 'tester', text: 'Running E2E tests on the deployed app...' });
+
+          try {
+            const testCases = await generateTestCases(productOutput, devResult.demoUrl);
+            send('agent_speech', { agent: 'tester', text: `Generated ${testCases.length} test cases. Running...` });
+
+            const testResults = await runTests(devResult.demoUrl, testCases);
+            const report = await generateQAReport(testResults, productOutput);
+
+            const testerPassed = report.passed;
+            const testerFailed = report.failed;
+            const testerSummary = `## QA Report\n\n**${testerPassed}/${report.totalTests} tests passed**\n\n` +
+              report.testResults.map(r =>
+                `- ${r.passed ? '✅' : '❌'} **${r.testName}** — ${r.details}`
+              ).join('\n') +
+              (testerFailed > 0 && report.recommendations.length > 0
+                ? `\n\n### Recommendations\n\n${report.recommendations.map(r => `- ${r}`).join('\n')}`
+                : '');
+
+            send('agent_output', { agent: 'tester', output: testerSummary });
+            send('agent_speech', { agent: 'tester', text: testerFailed > 0 ? `${testerFailed} tests failed — see report` : 'All tests passed!' });
+            send('agent_done', { agent: 'tester' });
+          } catch (e) {
+            console.error('Testing agent error:', e);
+            send('agent_speech', { agent: 'tester', text: 'Testing encountered an issue.' });
+            send('agent_output', { agent: 'tester', output: 'QA testing could not be completed. The deployed app may still be initializing.' });
+            send('agent_done', { agent: 'tester' });
+          }
+        }
 
         // ── COLLECT PARALLEL IMAGE RESULTS ──
         const [logo, competitiveVisual, marketMap, archDiagram, productMockup] = await Promise.all([

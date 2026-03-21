@@ -49,8 +49,32 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
     });
     const chatData = chat as Record<string, unknown>;
     const latestVersion = chatData.latestVersion as Record<string, unknown> | undefined;
+    const fileCount = (latestVersion?.files as unknown[])?.length || 0;
+
+    // Auto-deploy: try to create a deployment from the chat
+    if (latestVersion?.id && chatData.id && chatData.projectId) {
+      try {
+        const deployment = await v0.deployments.create({
+          projectId: chatData.projectId as string,
+          chatId: chatData.id as string,
+          versionId: latestVersion.id as string,
+        });
+        const deployData = deployment as unknown as Record<string, unknown>;
+        if (deployData.webUrl) {
+          return {
+            summary: `Generated ${fileCount} files and deployed via v0`,
+            demoUrl: deployData.webUrl as string,
+            webUrl: (chatData.webUrl as string) || null,
+          };
+        }
+      } catch (deployErr) {
+        console.error('v0 auto-deploy failed:', deployErr);
+      }
+    }
+
+    // Fall through if deployment failed or missing required IDs
     return {
-      summary: `Generated ${(latestVersion?.files as unknown[])?.length || 0} files via v0`,
+      summary: `Generated ${fileCount} files via v0`,
       demoUrl: (latestVersion?.demoUrl as string) || null,
       webUrl: (chatData.webUrl as string) || null,
     };

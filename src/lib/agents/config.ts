@@ -21,6 +21,10 @@ export const AGENTS: AgentDef[] = [
     avatar: 'https://api.dicebear.com/9.x/personas/svg?seed=Pixel&backgroundColor=10b981',
     personality: 'Ships fast. No TODOs, no placeholders, no excuses.', zone: 'dev-bay',
     defaultPosition: { x: 83, y: 70 } },
+  { id: 'tester', name: 'Sentinel', role: 'QA', color: '#ef4444',
+    avatar: 'https://api.dicebear.com/9.x/personas/svg?seed=Sentinel&backgroundColor=ef4444',
+    personality: 'Breaks things before users do. Zero tolerance for bugs.', zone: 'deploy-zone',
+    defaultPosition: { x: 17, y: 70 } },
 ];
 
 // Clean 2x3 grid — zones centered with gutters, no clipping

@@ -39,6 +39,7 @@ const roleEmoji: Record<AgentId, string> = {
   product: '\u{1F4CB}',   // clipboard
   architect: '\u{1F3D7}', // building construction
   developer: '\u{1F680}', // rocket
+  tester: '\u{1F9EA}',    // test tube
 };
 
 /** Parse CEO brief into structured sections */
@@ -138,6 +139,7 @@ function chatPlaceholder(agent: AgentDef): string {
     product: `Ask ${first} about features...`,
     architect: `Ask ${first} about tech decisions...`,
     developer: `Ask ${first} about the implementation...`,
+    tester: `Ask ${first} about test results...`,
   };
   return map[agent.id] ?? `Message ${first}...`;
 }

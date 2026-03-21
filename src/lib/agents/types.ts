@@ -1,4 +1,4 @@
-export type AgentId = 'ceo' | 'research' | 'product' | 'architect' | 'developer';
+export type AgentId = 'ceo' | 'research' | 'product' | 'architect' | 'developer' | 'tester';
 export type AgentStatus = 'idle' | 'waiting' | 'working' | 'done' | 'error';
 export type SimPhase = 'idle' | 'ceo_conversation' | 'pipeline' | 'delivered';
 

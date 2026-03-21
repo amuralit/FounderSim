@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'companyBrief, competitiveAnalysis, prd, and architectureDoc are required' }, { status: 400 });
     }
     const result: DevResult = await runDeveloperAgent({ companyBrief, competitiveAnalysis, prd, architectureDoc });
-    return NextResponse.json({ agent: 'developer', name: 'Priya Sharma', ...result });
+    return NextResponse.json({ agent: 'developer', name: 'Pixel', ...result });
   } catch (error) {
     console.error('Developer agent error:', error);
     return NextResponse.json({ error: 'Developer agent failed' }, { status: 500 });

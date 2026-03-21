@@ -13,6 +13,7 @@ const PROMPT_MAP: Record<AgentId, string> = {
   product: prompts.PRODUCT_SYSTEM_PROMPT,
   architect: prompts.ARCHITECT_SYSTEM_PROMPT,
   developer: prompts.DEVELOPER_SYSTEM_PROMPT,
+  tester: 'You are Sentinel, the QA engineer. You break things before users do. Zero tolerance for bugs.',
 };
 
 export async function POST(req: NextRequest) {

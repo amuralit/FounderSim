@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       const result = await runProductAgentStructured(companyBrief, competitiveAnalysis);
       return NextResponse.json({
         agent: 'product',
-        name: 'Maya Rodriguez',
+        name: 'Sage',
         output: result.markdown,
         structured: result.structured,
       });
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     // Fallback to text generation
     const output = await runProductAgent(companyBrief, competitiveAnalysis);
-    return NextResponse.json({ agent: 'product', name: 'Maya Rodriguez', output });
+    return NextResponse.json({ agent: 'product', name: 'Sage', output });
   } catch (error) {
     console.error('Product agent error:', error);
     return NextResponse.json({ error: 'Product agent failed' }, { status: 500 });

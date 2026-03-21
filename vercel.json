@@ -7,6 +7,7 @@
     "src/app/api/agents/research/route.ts": { "maxDuration": 120 },
     "src/app/api/agents/product/route.ts": { "maxDuration": 60 },
     "src/app/api/agents/architect/route.ts": { "maxDuration": 60 },
-    "src/app/api/agents/developer/route.ts": { "maxDuration": 300 }
+    "src/app/api/agents/developer/route.ts": { "maxDuration": 300 },
+    "src/app/api/agents/tester/route.ts": { "maxDuration": 120 }
   }
 }

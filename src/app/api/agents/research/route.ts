@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const result = await runResearchAgent(companyBrief);
     return NextResponse.json({
       agent: 'research',
-      name: 'Dr. Kai Patel',
+      name: 'Scout',
       output: result.rawAnalysis,
       structured: {
         competitors: result.competitors,
