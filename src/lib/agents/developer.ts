@@ -50,7 +50,17 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
       name: 'foundersim-gen',
       environmentVariables: envVars,
     });
-    const chat = await v0.chats.create({
+    // Wrap v0 call with timeout — if it hangs (integration prompt), retry
+    const v0WithTimeout = async <T>(fn: () => Promise<T>, timeoutMs: number): Promise<T> => {
+      return Promise.race([
+        fn(),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('v0_timeout')), timeoutMs)),
+      ]);
+    };
+
+    let chat;
+    try {
+      chat = await v0WithTimeout(() => v0.chats.create({
       projectId: project.id,
       message: taskPrompt + `\n\nCRITICAL BUILD RULES:
 - ABSOLUTELY DO NOT use v0 integrations for Supabase, Stripe, or any service. NO integration prompts. NO "Install" buttons. The app MUST build without ANY human interaction.
@@ -64,8 +74,15 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
 - Add @google/genai to dependencies.
 - The GOOGLE_GENERATIVE_AI_API_KEY env var is already set in Vercel.
 - NEVER use Vercel AI Gateway (ai-gateway.vercel.sh) — it will cause server errors.`,
-      system: DEVELOPER_SYSTEM_PROMPT,
-    });
+        system: DEVELOPER_SYSTEM_PROMPT,
+      }), 120000); // 120s timeout
+    } catch (timeoutErr) {
+      if (timeoutErr instanceof Error && timeoutErr.message === 'v0_timeout') {
+        console.warn('v0 build timed out (likely stuck on integration prompt). Falling back to Gemini.');
+        throw new Error('v0 timed out — falling back to Gemini code gen');
+      }
+      throw timeoutErr;
+    }
     const chatData = chat as Record<string, unknown>;
     const latestVersion = chatData.latestVersion as Record<string, unknown> | undefined;
     const fileCount = (latestVersion?.files as unknown[])?.length || 0;
