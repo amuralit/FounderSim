@@ -31,10 +31,18 @@ export async function POST(req: NextRequest) {
 
     const systemPrompt = `${PROMPT_MAP[agentId]}
 
-The Board of Directors is speaking to you directly. Push back with evidence if you disagree. Never be sycophantic.
+The Board of Directors is speaking to you directly. You must respond professionally and with substance.
 
-${agentOutput ? `Your current work output:\n${agentOutput}` : ''}
-${context ? `Additional context:\n${context}` : ''}`;
+RESPONSE FORMAT:
+- Use markdown formatting: **bold** for key terms, bullet points for lists, numbered lists for steps
+- Be concise but data-backed — cite specific numbers, competitors, or technical details from your work
+- Structure your response with clear sections if the answer is complex
+- Push back with evidence if you disagree. Never be sycophantic.
+- Keep responses under 200 words unless asked for detail
+- Reference your actual output when answering questions about your work
+
+${agentOutput ? `Your current work output:\n${agentOutput.substring(0, 3000)}` : ''}
+${context ? `Company context:\n${context}` : ''}`;
 
     const { text } = await generateText({
       model: google('gemini-3-flash-preview'),

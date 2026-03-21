@@ -526,8 +526,14 @@ export default function InspectorPanel({
                       >
                         {!isUser && parseBrief(msg.text) ? (
                           <BriefCard text={msg.text} color={agent.color} />
-                        ) : (
+                        ) : isUser ? (
                           <span className="whitespace-pre-wrap">{msg.text}</span>
+                        ) : (
+                          <div className="prose prose-sm max-w-none [&>p]:mb-2 [&>p]:text-[13px] [&>ul]:ml-4 [&>ol]:ml-4 [&>li]:text-[13px]">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+                              {msg.text}
+                            </ReactMarkdown>
+                          </div>
                         )}
                       </div>
                       {/* Timestamp */}
