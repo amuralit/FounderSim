@@ -1,0 +1,630 @@
+'use client';
+
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import { AGENTS } from '@/lib/agents/config';
+import { AgentId, AgentStatus, SimPhase, ChatMessage, DecisionEntry } from '@/lib/agents/types';
+import OfficeView from './OfficeView';
+import MissionInput from './MissionInput';
+import InspectorPanel from './InspectorPanel';
+import ApprovalGate from './ApprovalGate';
+import FundraisingKit from './FundraisingKit';
+
+type StatusMap = Record<AgentId, AgentStatus>;
+type PositionMap = Record<AgentId, { x: number; y: number }>;
+
+const initialStatuses: StatusMap = {
+  ceo: 'idle', research: 'idle', product: 'idle', architect: 'idle', developer: 'idle',
+};
+
+const initialPositions: PositionMap = Object.fromEntries(
+  AGENTS.map(a => [a.id, a.defaultPosition])
+) as PositionMap;
+
+const PIPELINE_ORDER: AgentId[] = ['research', 'product', 'architect', 'developer'];
+
+const GO_KEYWORDS = /^(go|start|build|proceed|yes|approved|lgtm|let'?s go|do it|ship it|launch|begin|kick it off|make it happen)$/i;
+
+export default function FounderSim() {
+  const [phase, setPhase] = useState<SimPhase>('idle');
+  const [mission, setMission] = useState('');
+  const [companyBrief, setCompanyBrief] = useState('');
+  const [pendingBrief, setPendingBrief] = useState<string | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<AgentId | null>(null);
+  const [statuses, setStatuses] = useState<StatusMap>(initialStatuses);
+  const [positions, setPositions] = useState<PositionMap>(initialPositions);
+  const [speeches, setSpeeches] = useState<Record<string, string | null>>({});
+  const [outputs, setOutputs] = useState<Record<string, string>>({});
+  const [chatHistories, setChatHistories] = useState<Record<string, ChatMessage[]>>({});
+  const [decisions, setDecisions] = useState<DecisionEntry[]>([]);
+  const [approvalGate, setApprovalGate] = useState<{ question: string; details?: string } | null>(null);
+  const [showKit, setShowKit] = useState(false);
+  const [demoUrl, setDemoUrl] = useState<string | null>(null);
+  const [webUrl, setWebUrl] = useState<string | null>(null);
+  const [logoBase64, setLogoBase64] = useState<string | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
+  const [ceoChatLoading, setCeoChatLoading] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const startPipelineRef = useRef<(brief: string) => void>(() => {});
+
+  // ── LOCALSTORAGE PERSISTENCE ──
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('foundersim-state');
+      if (saved) {
+        const s = JSON.parse(saved);
+        if (s.phase && s.phase !== 'idle') {
+          setPhase(s.phase);
+          setMission(s.mission || '');
+          setCompanyBrief(s.companyBrief || '');
+          setPendingBrief(s.pendingBrief || null);
+          setOutputs(s.outputs || {});
+          setChatHistories(s.chatHistories || {});
+          setDecisions(s.decisions || []);
+          setDemoUrl(s.demoUrl || null);
+          setWebUrl(s.webUrl || null);
+          setLogoBase64(s.logoBase64 || null);
+          if (s.statuses) setStatuses(s.statuses);
+          if (s.phase === 'delivered') {
+            setStatuses({ ceo: 'done', research: 'done', product: 'done', architect: 'done', developer: 'done' });
+          }
+        }
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    if (phase === 'idle') return;
+    try {
+      localStorage.setItem('foundersim-state', JSON.stringify({
+        phase, mission, companyBrief, pendingBrief, outputs, chatHistories,
+        decisions, demoUrl, webUrl, logoBase64, statuses,
+      }));
+    } catch { /* ignore */ }
+  }, [phase, mission, companyBrief, pendingBrief, outputs, chatHistories, decisions, demoUrl, webUrl, logoBase64, statuses]);
+
+  const setSpeech = useCallback((agentId: string, text: string | null) => {
+    setSpeeches(prev => ({ ...prev, [agentId]: text }));
+    if (text) {
+      setTimeout(() => setSpeeches(prev => ({ ...prev, [agentId]: null })), 5000);
+    }
+  }, []);
+
+  const addDecision = useCallback((agent: AgentId, type: string, desc: string) => {
+    setDecisions(prev => [...prev, { ts: Date.now(), agent, type, desc }]);
+  }, []);
+
+  // Derive currently active agent from statuses for status bar
+  const activeAgent = useMemo(() => {
+    for (const id of PIPELINE_ORDER) {
+      if (statuses[id] === 'working') {
+        return AGENTS.find(a => a.id === id) ?? null;
+      }
+    }
+    return null;
+  }, [statuses]);
+
+  // Status text for bottom bar
+  const statusText = useMemo(() => {
+    if (phase === 'idle') return null;
+    if (phase === 'ceo_conversation') {
+      if (pendingBrief) return 'Brief ready. Say "go" to start building.';
+      return 'Chatting with Ada Chen...';
+    }
+    if (phase === 'pipeline') {
+      if (activeAgent) {
+        const verb: Record<AgentId, string> = {
+          ceo: 'is planning...',
+          research: 'is researching competitors...',
+          product: 'is writing the product spec...',
+          architect: 'is designing the architecture...',
+          developer: 'is generating code...',
+        };
+        return `${activeAgent.name} ${verb[activeAgent.id as AgentId]}`;
+      }
+      return 'Agents are working...';
+    }
+    if (phase === 'delivered') return 'All agents complete. Click any agent to review their work.';
+    return null;
+  }, [phase, activeAgent, pendingBrief]);
+
+  // ── CEO CONVERSATION ──
+  const handleMissionSubmit = useCallback((m: string) => {
+    setMission(m);
+    setPhase('ceo_conversation');
+    setStatuses(prev => ({ ...prev, ceo: 'working' }));
+    setSelectedAgent('ceo');
+    setSpeech('ceo', 'Analyzing your mission...');
+
+    const initialMsg: ChatMessage = { from: 'user', text: m, ts: Date.now() };
+    setChatHistories(prev => ({ ...prev, ceo: [initialMsg] }));
+    setCeoChatLoading(true);
+
+    fetch('/api/ceo-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mission: m, history: [initialMsg] }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        const agentMsg: ChatMessage = { from: 'ceo', text: data.text, ts: Date.now() };
+        setChatHistories(prev => ({ ...prev, ceo: [...(prev.ceo || []), agentMsg] }));
+        setOutputs(prev => ({ ...prev, ceo: data.text }));
+        setSpeech('ceo', data.text.substring(0, 100) + '...');
+
+        if (data.briefReady && data.brief) {
+          // Bug 1 Fix: Store the brief but DON'T auto-start the pipeline.
+          // Instead, hold it as "pending" and ask the user to confirm.
+          setPendingBrief(data.brief);
+          const confirmMsg: ChatMessage = {
+            from: 'ceo',
+            text: "This is where I'd take this. Review the brief above, then say **\"go\"** when you're ready -- or tell me what to adjust.",
+            ts: Date.now() + 1,
+          };
+          setChatHistories(prev => ({ ...prev, ceo: [...(prev.ceo || []), agentMsg, confirmMsg] }));
+          setOutputs(prev => ({ ...prev, ceo: data.brief }));
+          setSpeech('ceo', "Brief ready. Say 'go' when you're happy with it.");
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        setSpeech('ceo', 'Hit a snag, but I can work with this. Let me brief the team.');
+      })
+      .finally(() => setCeoChatLoading(false));
+  }, [setSpeech]);
+
+  // ── AGENT CHAT ──
+  const handleAgentChat = useCallback((agentId: AgentId, message: string) => {
+    const userMsg: ChatMessage = { from: 'user', text: message, ts: Date.now() };
+    setChatHistories(prev => ({
+      ...prev,
+      [agentId]: [...(prev[agentId] || []), userMsg],
+    }));
+
+    if (agentId === 'ceo' && phase === 'ceo_conversation') {
+      // Bug 1 Fix: If there's a pending brief AND user says a "go" keyword,
+      // start the pipeline now.
+      const trimmed = message.trim();
+      if (pendingBrief && GO_KEYWORDS.test(trimmed)) {
+        const goMsg: ChatMessage = {
+          from: 'ceo',
+          text: "Excellent. Briefing the team now — let's build this company.",
+          ts: Date.now() + 1,
+        };
+        setChatHistories(prev => ({ ...prev, ceo: [...(prev.ceo || []), userMsg, goMsg] }));
+        setCompanyBrief(pendingBrief);
+        setPendingBrief(null);
+        addDecision('ceo', 'Brief Approved', 'Company brief finalized and sent to team.');
+        startPipelineRef.current(pendingBrief);
+        return;
+      }
+
+      // Otherwise, normal CEO conversation (may revise brief)
+      setCeoChatLoading(true);
+      const history = [...(chatHistories.ceo || []), userMsg];
+      fetch('/api/ceo-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mission, history }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          const agentMsg: ChatMessage = { from: 'ceo', text: data.text, ts: Date.now() };
+          setChatHistories(prev => ({ ...prev, ceo: [...(prev.ceo || []), agentMsg] }));
+          setOutputs(prev => ({ ...prev, ceo: data.text }));
+          setSpeech('ceo', data.text.substring(0, 80) + '...');
+
+          if (data.briefReady && data.brief) {
+            // New brief generated after revision — still DON'T auto-start.
+            // Store as pending and ask for confirmation again.
+            setPendingBrief(data.brief);
+            const confirmMsg: ChatMessage = {
+              from: 'ceo',
+              text: "Updated brief is ready. Say **\"go\"** to kick things off, or keep refining.",
+              ts: Date.now() + 1,
+            };
+            setChatHistories(prev => ({ ...prev, ceo: [...(prev.ceo || []), agentMsg, confirmMsg] }));
+            setOutputs(prev => ({ ...prev, ceo: data.brief }));
+            setSpeech('ceo', "Revised brief ready. Say 'go' when you're happy.");
+          }
+        })
+        .catch(console.error)
+        .finally(() => setCeoChatLoading(false));
+      return;
+    }
+
+    // Post-delivery agent chat
+    fetch('/api/agent-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        agentId,
+        message,
+        agentOutput: outputs[agentId],
+        context: companyBrief,
+      }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        const agentMsg: ChatMessage = { from: agentId, text: data.text, ts: Date.now() };
+        setChatHistories(prev => ({
+          ...prev,
+          [agentId]: [...(prev[agentId] || []), agentMsg],
+        }));
+      })
+      .catch(console.error);
+  }, [phase, mission, chatHistories, outputs, companyBrief, pendingBrief, setSpeech, addDecision]);
+
+  // ── SSE PIPELINE ──
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const startPipeline = useCallback((brief: string) => {
+    setPhase('pipeline');
+    setIsRunning(true);
+    setStatuses({
+      ceo: 'done',
+      research: 'waiting',
+      product: 'waiting',
+      architect: 'waiting',
+      developer: 'waiting',
+    });
+    setSpeech('ceo', 'Team, you have your brief. Let\'s build this company.');
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    fetch('/api/simulation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ companyBrief: brief }),
+      signal: controller.signal,
+    })
+      .then(async res => {
+        const reader = res.body!.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          let currentEvent = '';
+          for (const line of lines) {
+            if (line.startsWith('event: ')) {
+              currentEvent = line.slice(7);
+            } else if (line.startsWith('data: ') && currentEvent) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                handleSSEEvent(currentEvent, data);
+              } catch (e) {
+                console.error('SSE parse error:', e);
+              }
+              currentEvent = '';
+            }
+          }
+        }
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError') console.error('Pipeline error:', err);
+      })
+      .finally(() => {
+        setIsRunning(false);
+      });
+  }, []);
+  startPipelineRef.current = startPipeline;
+
+  const handleSSEEvent = useCallback((event: string, data: Record<string, unknown>) => {
+    const agent = data.agent as AgentId | undefined;
+
+    switch (event) {
+      case 'agent_start':
+        if (agent) {
+          setStatuses(prev => ({ ...prev, [agent]: 'working' }));
+          const agentDef = AGENTS.find(a => a.id === agent);
+          if (agentDef) {
+            setPositions(prev => ({ ...prev, [agent]: agentDef.defaultPosition }));
+          }
+        }
+        break;
+
+      case 'agent_speech':
+        if (agent) {
+          setSpeech(agent, data.text as string);
+        }
+        break;
+
+      case 'agent_output':
+        if (agent) {
+          setOutputs(prev => ({ ...prev, [agent]: data.output as string }));
+          if (data.demoUrl) setDemoUrl(data.demoUrl as string);
+          if (data.webUrl) setWebUrl(data.webUrl as string);
+        }
+        break;
+
+      case 'agent_done':
+        if (agent) {
+          setStatuses(prev => ({ ...prev, [agent]: 'done' }));
+          addDecision(agent, 'Completed', `${agent} agent finished work.`);
+        }
+        break;
+
+      case 'approval_gate':
+        setApprovalGate({
+          question: data.question as string,
+          details: data.details as string | undefined,
+        });
+        addDecision(
+          (data.agent as AgentId) || 'ceo',
+          'Approval Gate',
+          data.question as string
+        );
+        break;
+
+      case 'image_ready':
+        if (data.type === 'logo') {
+          setLogoBase64(data.data as string);
+        }
+        break;
+
+      case 'deploy_status':
+        if (data.demoUrl) setDemoUrl(data.demoUrl as string);
+        if (data.webUrl) setWebUrl(data.webUrl as string);
+        break;
+
+      case 'phase_change':
+        if (data.phase === 'delivered') {
+          setPhase('delivered');
+          setStatuses({
+            ceo: 'done', research: 'done', product: 'done',
+            architect: 'done', developer: 'done',
+          });
+          setSpeech('ceo', 'The company is built. Open the Fundraising Kit to see everything.');
+        }
+        break;
+
+      case 'error':
+        if (agent) {
+          setStatuses(prev => ({ ...prev, [agent]: 'error' }));
+        }
+        break;
+    }
+  }, [setSpeech, addDecision]);
+
+  // Bug 2 Fix: Wrap approval gate callbacks to avoid setState-during-render.
+  // The ApprovalGate auto-approve uses setTimeout internally, but we also
+  // make sure the callbacks themselves are safe by deferring addDecision.
+  const handleApprove = useCallback(() => {
+    if (!approvalGate) return;
+    const q = approvalGate.question;
+    setApprovalGate(null);
+    setTimeout(() => addDecision('ceo', 'Approved', q), 0);
+  }, [approvalGate, addDecision]);
+
+  const handleModify = useCallback((feedback: string) => {
+    if (!approvalGate) return;
+    const q = approvalGate.question;
+    setApprovalGate(null);
+    setTimeout(() => addDecision('ceo', 'Modified', `${q} — Feedback: ${feedback}`), 0);
+  }, [approvalGate, addDecision]);
+
+  const handleReject = useCallback(() => {
+    if (!approvalGate) return;
+    const q = approvalGate.question;
+    setApprovalGate(null);
+    setTimeout(() => addDecision('ceo', 'Rejected', q), 0);
+  }, [approvalGate, addDecision]);
+
+  const selectedAgentDef = selectedAgent ? AGENTS.find(a => a.id === selectedAgent) : null;
+
+  // Phase pill config
+  const phasePill = useMemo(() => {
+    if (phase === 'ceo_conversation') return { label: 'Briefing', color: '#f59e0b', pulse: false };
+    if (phase === 'pipeline') return { label: 'Building', color: '#10b981', pulse: true };
+    if (phase === 'delivered') return { label: 'Complete', color: '#10b981', pulse: false };
+    return null;
+  }, [phase]);
+
+  // Progress bar segments: which agents are done
+  const agentProgress = useMemo(() => {
+    return PIPELINE_ORDER.map(id => ({
+      id,
+      color: AGENTS.find(a => a.id === id)?.color ?? '#555',
+      done: statuses[id] === 'done',
+      working: statuses[id] === 'working',
+    }));
+  }, [statuses]);
+
+  const showProgressBar = phase === 'pipeline' || phase === 'delivered';
+
+  return (
+    <div className="w-full h-screen flex flex-col overflow-hidden" style={{ background: '#08080e' }}>
+      {/* Header */}
+      <header
+        className="shrink-0"
+        style={{ background: '#0c0c14' }}
+      >
+        <div className="flex items-center justify-between px-6 py-3">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold"
+              style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}
+            >
+              F
+            </div>
+            <span className="font-bold text-lg tracking-tight">FounderSim</span>
+            <span className="text-xs ml-1" style={{ color: '#666' }}>from idea to investor-ready</span>
+
+            {/* Phase status pill */}
+            {phasePill && (
+              <span
+                className="ml-3 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide uppercase"
+                style={{
+                  background: `${phasePill.color}15`,
+                  color: phasePill.color,
+                  border: `1px solid ${phasePill.color}30`,
+                }}
+              >
+                {phasePill.pulse && (
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{
+                      background: phasePill.color,
+                      animation: 'pulse-dot 1.5s infinite',
+                    }}
+                  />
+                )}
+                {phasePill.label}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {phase === 'delivered' && (
+              <button
+                onClick={() => setShowKit(true)}
+                className="px-4 py-1.5 rounded-md font-semibold text-[13px] text-white cursor-pointer"
+                style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)', border: 'none' }}
+              >
+                Fundraising Kit
+              </button>
+            )}
+            {isRunning && (
+              <div className="flex items-center gap-1.5 text-xs" style={{ color: '#f59e0b' }}>
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ background: '#f59e0b', animation: 'pulse-dot 1.5s infinite' }}
+                />
+                Agents working...
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Gradient separator line */}
+        <div
+          className="h-px w-full"
+          style={{
+            background: 'linear-gradient(90deg, transparent 0%, #f59e0b40 25%, #ef444440 50%, #10b98140 75%, transparent 100%)',
+          }}
+        />
+
+        {/* Agent progress bar */}
+        {showProgressBar && (
+          <div className="flex w-full h-1 gap-px" style={{ background: '#08080e' }}>
+            {agentProgress.map(seg => (
+              <div
+                key={seg.id}
+                className="flex-1 transition-all duration-700 ease-out"
+                style={{
+                  background: seg.done
+                    ? seg.color
+                    : seg.working
+                      ? `${seg.color}50`
+                      : '#1a1a28',
+                  ...(seg.working ? { animation: 'progress-pulse 2s ease-in-out infinite' } : {}),
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </header>
+
+      {/* Main content */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Office view */}
+        <div
+          className="relative overflow-hidden transition-all duration-300 flex flex-col"
+          style={{ flex: selectedAgent ? '0 0 60%' : '1' }}
+        >
+          {phase === 'idle' && <MissionInput onSubmit={handleMissionSubmit} />}
+
+          <div className="flex-1 relative">
+            <OfficeView
+              agents={AGENTS}
+              statuses={statuses}
+              positions={positions}
+              speeches={speeches}
+              selectedAgentId={selectedAgent}
+              onAgentClick={(id) => setSelectedAgent(selectedAgent === id ? null : id)}
+            />
+
+            {approvalGate && (
+              <ApprovalGate
+                question={approvalGate.question}
+                details={approvalGate.details}
+                onApprove={handleApprove}
+                onModify={handleModify}
+                onReject={handleReject}
+              />
+            )}
+          </div>
+
+          {/* Bottom status bar */}
+          {statusText && (
+            <div
+              className="shrink-0 px-5 py-2 flex items-center gap-2 text-xs"
+              style={{
+                borderTop: '1px solid #1e1e2e',
+                background: '#0a0a12',
+                color: '#888',
+              }}
+            >
+              {phase === 'pipeline' && activeAgent && (
+                <span
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{
+                    background: activeAgent.color,
+                    animation: 'pulse-dot 1.5s infinite',
+                  }}
+                />
+              )}
+              {phase === 'delivered' && (
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: '#10b981' }} />
+              )}
+              {phase === 'ceo_conversation' && (
+                <span
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{
+                    background: '#f59e0b',
+                    animation: pendingBrief ? undefined : 'pulse-dot 1.5s infinite',
+                  }}
+                />
+              )}
+              <span>{statusText}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Inspector panel */}
+        {selectedAgentDef && (
+          <div className="w-[40%] shrink-0">
+            <InspectorPanel
+              agent={selectedAgentDef}
+              output={outputs[selectedAgent!] || null}
+              chatHistory={chatHistories[selectedAgent!] || []}
+              onSendMessage={handleAgentChat}
+              onClose={() => setSelectedAgent(null)}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Fundraising Kit modal */}
+      {showKit && (
+        <FundraisingKit
+          researchOutput={outputs.research || ''}
+          architectOutput={outputs.architect || ''}
+          demoUrl={demoUrl}
+          webUrl={webUrl}
+          logoBase64={logoBase64}
+          decisions={decisions}
+          companyBrief={companyBrief}
+          productOutput={outputs.product || ''}
+          onClose={() => setShowKit(false)}
+        />
+      )}
+
+    </div>
+  );
+}
