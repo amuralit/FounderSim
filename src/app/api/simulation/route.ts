@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
         send('agent_start', { agent: 'developer' });
         send('agent_speech', { agent: 'developer', text: 'Building the app with v0 Platform API...' });
 
-        let devResult: { summary: string; demoUrl: string | null; webUrl: string | null; rawCode?: string };
+        let devResult: { summary: string; demoUrl: string | null; webUrl: string | null; rawCode?: string; v0ChatId?: string; v0ProjectId?: string };
         try {
           devResult = await runDeveloperAgent({
             companyBrief,
