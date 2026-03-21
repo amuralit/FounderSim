@@ -20,7 +20,6 @@ const ZONE_META: Record<string, { emoji: string; agentColor: string }> = {
   'architecture': { emoji: '🏗', agentColor: '#06b6d4' },
   'dev-bay':      { emoji: '💻', agentColor: '#10b981' },
   'deploy-zone':  { emoji: '🚀', agentColor: '#f59e0b' },
-  'debate-arena': { emoji: '⚡', agentColor: '#ef4444' },
 };
 
 function isAgentInZoneWorking(zoneId: string, statuses: Record<AgentId, AgentStatus>): boolean {

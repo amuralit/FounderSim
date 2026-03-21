@@ -650,11 +650,11 @@ export default function FounderSim() {
           {/* Bottom status bar */}
           {statusText && (
             <div
-              className="shrink-0 px-5 py-2 flex items-center gap-2 text-xs"
+              className="shrink-0 px-5 py-2.5 flex items-center gap-2 text-xs"
               style={{
-                borderTop: '1px solid #1e1e2e',
-                background: '#0a0a12',
-                color: '#888',
+                borderTop: '1px solid var(--border)',
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-secondary)',
               }}
             >
               {phase === 'pipeline' && activeAgent && (
@@ -669,16 +669,38 @@ export default function FounderSim() {
               {phase === 'delivered' && (
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ background: '#10b981' }} />
               )}
-              {phase === 'ceo_conversation' && (
+              {phase === 'ceo_conversation' && !pendingBrief && (
                 <span
                   className="w-2 h-2 rounded-full shrink-0"
                   style={{
                     background: '#f59e0b',
-                    animation: pendingBrief ? undefined : 'pulse-dot 1.5s infinite',
+                    animation: 'pulse-dot 1.5s infinite',
                   }}
                 />
               )}
-              <span>{statusText}</span>
+              <span className="flex-1">{statusText}</span>
+
+              {/* BUILD NOW button when brief is ready */}
+              {pendingBrief && phase === 'ceo_conversation' && (
+                <button
+                  onClick={() => {
+                    const goMsg: ChatMessage = { from: 'user', text: 'go', ts: Date.now() };
+                    setChatHistories(prev => ({ ...prev, ceo: [...(prev.ceo || []), goMsg] }));
+                    setCompanyBrief(pendingBrief);
+                    setPendingBrief(null);
+                    addDecision('ceo', 'Brief Approved', 'Company brief finalized and sent to team.');
+                    startPipelineRef.current(pendingBrief);
+                  }}
+                  className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  style={{
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    border: 'none',
+                    boxShadow: '0 2px 12px rgba(16,185,129,0.3)',
+                  }}
+                >
+                  Build Now →
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -2,19 +2,28 @@ import { generateText } from 'ai';
 import { google } from '@ai-sdk/google';
 import { DEVELOPER_SYSTEM_PROMPT, buildDeveloperTaskPrompt } from '../prompts';
 
-interface DevSpecs {
+// ── Types ──
+
+export interface DevSpecs {
   companyBrief: string;
   competitiveAnalysis: string;
   prd: string;
   architectureDoc: string;
 }
 
-interface DevResult {
+export interface DevResult {
   summary: string;
   demoUrl: string | null;
   webUrl: string | null;
   rawCode?: string;
+  agentEndpoint?: {
+    route: string;
+    inputExample: Record<string, unknown>;
+    outputExample: Record<string, unknown>;
+  };
 }
+
+// ── Developer Agent ──
 
 export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
   const taskPrompt = buildDeveloperTaskPrompt(specs.companyBrief, specs.competitiveAnalysis, specs.prd, specs.architectureDoc);

@@ -34,14 +34,15 @@ export async function POST(req: NextRequest) {
         // Fire logo gen in parallel (non-blocking)
         const logoPromise = generateLogo(companyBrief).catch(() => null);
 
-        let researchOutput: string;
+        let researchResult: { rawAnalysis: string };
         try {
-          researchOutput = await runResearchAgent(companyBrief);
+          researchResult = await runResearchAgent(companyBrief);
         } catch (e) {
           console.error('Research agent error:', e);
-          researchOutput = 'Research data unavailable — proceeding with available information.';
+          researchResult = { rawAnalysis: 'Research data unavailable — proceeding with available information.' };
           send('error', { agent: 'research', message: 'Research agent encountered an issue, continuing...' });
         }
+        const researchOutput = researchResult.rawAnalysis;
         send('agent_output', { agent: 'research', output: researchOutput });
         send('agent_done', { agent: 'research' });
 
