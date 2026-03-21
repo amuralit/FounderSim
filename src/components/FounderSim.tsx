@@ -3,11 +3,14 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { AGENTS } from '@/lib/agents/config';
 import { AgentId, AgentStatus, SimPhase, ChatMessage, DecisionEntry } from '@/lib/agents/types';
+import { Project, loadProjects, saveProject, deleteProject, createNewProject, migrateOldState } from '@/lib/projects';
 import OfficeView from './OfficeView';
 import MissionInput from './MissionInput';
 import InspectorPanel from './InspectorPanel';
 import ApprovalGate from './ApprovalGate';
 import FundraisingKit from './FundraisingKit';
+import ArtifactPanel from './ArtifactPanel';
+import ProjectSwitcher from './ProjectSwitcher';
 
 type StatusMap = Record<AgentId, AgentStatus>;
 type PositionMap = Record<AgentId, { x: number; y: number }>;
@@ -43,44 +46,103 @@ export default function FounderSim() {
   const [logoBase64, setLogoBase64] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [ceoChatLoading, setCeoChatLoading] = useState(false);
+  const [showArtifacts, setShowArtifacts] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const startPipelineRef = useRef<(brief: string) => void>(() => {});
 
-  // ── LOCALSTORAGE PERSISTENCE ──
+  // ── PROJECT PERSISTENCE ──
+  // Load projects on mount (migrate old format if needed)
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('foundersim-state');
-      if (saved) {
-        const s = JSON.parse(saved);
-        if (s.phase && s.phase !== 'idle') {
-          setPhase(s.phase);
-          setMission(s.mission || '');
-          setCompanyBrief(s.companyBrief || '');
-          setPendingBrief(s.pendingBrief || null);
-          setOutputs(s.outputs || {});
-          setChatHistories(s.chatHistories || {});
-          setDecisions(s.decisions || []);
-          setDemoUrl(s.demoUrl || null);
-          setWebUrl(s.webUrl || null);
-          setLogoBase64(s.logoBase64 || null);
-          if (s.statuses) setStatuses(s.statuses);
-          if (s.phase === 'delivered') {
-            setStatuses({ ceo: 'done', research: 'done', product: 'done', architect: 'done', developer: 'done' });
-          }
-        }
-      }
-    } catch { /* ignore */ }
+    let allProjects = loadProjects();
+    const migrated = migrateOldState();
+    if (migrated) {
+      allProjects.push(migrated);
+      saveProject(migrated);
+    }
+    // Also remove legacy key
+    try { localStorage.removeItem('foundersim-state'); } catch { /* */ }
+
+    setProjects(allProjects);
+    // Auto-select most recent project, or stay idle
+    if (allProjects.length > 0) {
+      const latest = allProjects.sort((a, b) => b.updatedAt - a.updatedAt)[0];
+      loadProjectState(latest);
+    }
   }, []);
 
+  function loadProjectState(p: Project) {
+    setCurrentProjectId(p.id);
+    setPhase(p.phase);
+    setMission(p.mission);
+    setCompanyBrief(p.companyBrief);
+    setPendingBrief(p.pendingBrief);
+    setOutputs(p.outputs);
+    setChatHistories(p.chatHistories);
+    setDecisions(p.decisions);
+    setDemoUrl(p.demoUrl);
+    setWebUrl(p.webUrl);
+    setLogoBase64(p.logoBase64);
+    if (p.statuses) setStatuses(p.statuses);
+    if (p.phase === 'delivered') {
+      setStatuses({ ceo: 'done', research: 'done', product: 'done', architect: 'done', developer: 'done' });
+    }
+    setSelectedAgent(null);
+    setSpeeches({});
+    setIsRunning(false);
+  }
+
+  // Save current project state on changes
   useEffect(() => {
-    if (phase === 'idle') return;
-    try {
-      localStorage.setItem('foundersim-state', JSON.stringify({
-        phase, mission, companyBrief, pendingBrief, outputs, chatHistories,
-        decisions, demoUrl, webUrl, logoBase64, statuses,
-      }));
-    } catch { /* ignore */ }
-  }, [phase, mission, companyBrief, pendingBrief, outputs, chatHistories, decisions, demoUrl, webUrl, logoBase64, statuses]);
+    if (!currentProjectId || phase === 'idle') return;
+    const p: Project = {
+      id: currentProjectId,
+      name: mission?.substring(0, 40) || 'Untitled',
+      mission, createdAt: Date.now(), updatedAt: Date.now(),
+      phase, companyBrief, pendingBrief, outputs, chatHistories,
+      decisions, statuses, demoUrl, webUrl, logoBase64,
+    };
+    saveProject(p);
+    setProjects(loadProjects());
+  }, [phase, mission, companyBrief, pendingBrief, outputs, chatHistories, decisions, demoUrl, webUrl, logoBase64, statuses, currentProjectId]);
+
+  function handleNewProject() {
+    const p = createNewProject();
+    saveProject(p);
+    setProjects(loadProjects());
+    loadProjectState(p);
+    setPhase('idle');
+    setMission('');
+    setCompanyBrief('');
+    setPendingBrief(null);
+    setOutputs({});
+    setChatHistories({});
+    setDecisions([]);
+    setStatuses(initialStatuses);
+    setPositions(initialPositions);
+    setDemoUrl(null);
+    setWebUrl(null);
+    setLogoBase64(null);
+  }
+
+  function handleSelectProject(projectId: string) {
+    const p = projects.find(pr => pr.id === projectId);
+    if (p) loadProjectState(p);
+  }
+
+  function handleDeleteProject(projectId: string) {
+    deleteProject(projectId);
+    const remaining = loadProjects();
+    setProjects(remaining);
+    if (projectId === currentProjectId) {
+      if (remaining.length > 0) {
+        loadProjectState(remaining[0]);
+      } else {
+        handleNewProject();
+      }
+    }
+  }
 
   const setSpeech = useCallback((agentId: string, text: string | null) => {
     setSpeeches(prev => ({ ...prev, [agentId]: text }));
@@ -129,6 +191,15 @@ export default function FounderSim() {
 
   // ── CEO CONVERSATION ──
   const handleMissionSubmit = useCallback((m: string) => {
+    // Create project if none exists
+    if (!currentProjectId) {
+      const p = createNewProject();
+      p.mission = m;
+      p.name = m.substring(0, 40);
+      saveProject(p);
+      setCurrentProjectId(p.id);
+      setProjects(loadProjects());
+    }
     setMission(m);
     setPhase('ceo_conversation');
     setStatuses(prev => ({ ...prev, ceo: 'working' }));
@@ -480,6 +551,22 @@ export default function FounderSim() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <ProjectSwitcher
+              projects={projects}
+              currentProjectId={currentProjectId}
+              onSelect={handleSelectProject}
+              onNew={handleNewProject}
+              onDelete={handleDeleteProject}
+            />
+            {phase !== 'idle' && (
+              <button
+                onClick={() => setShowArtifacts(true)}
+                className="px-3 py-1.5 rounded-lg text-xs cursor-pointer transition-all"
+                style={{ background: '#ffffff06', border: '1px solid #ffffff10', color: '#aaa' }}
+              >
+                Artifacts
+              </button>
+            )}
             {phase === 'delivered' && (
               <button
                 onClick={() => setShowKit(true)}
@@ -609,6 +696,18 @@ export default function FounderSim() {
           </div>
         )}
       </div>
+
+      {/* Artifacts panel */}
+      {showArtifacts && (
+        <ArtifactPanel
+          outputs={outputs}
+          companyBrief={companyBrief}
+          demoUrl={demoUrl}
+          webUrl={webUrl}
+          logoBase64={logoBase64}
+          onClose={() => setShowArtifacts(false)}
+        />
+      )}
 
       {/* Fundraising Kit modal */}
       {showKit && (
