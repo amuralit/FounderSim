@@ -55,39 +55,9 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
           </span>
         </h1>
 
-        <p className="text-base mb-4 leading-relaxed" style={{ color: '#6B7280' }}>
-          Describe an AI agent. Six agents research the market, design the product,
-          <br className="hidden sm:block" />
-          write the code, deploy it, and test it — while you watch and steer.
+        <p className="text-[15px] mb-8" style={{ color: '#9CA3AF' }}>
+          Six AI agents do the rest.
         </p>
-
-        {/* How it works — compact */}
-        <div className="flex justify-center gap-6 mb-8 text-[11px]" style={{ color: '#9CA3AF' }}>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full" style={{ background: '#f59e0b' }} />
-            Strategize
-          </div>
-          <span style={{ color: '#E8EAF0' }}>→</span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full" style={{ background: '#3b82f6' }} />
-            Research
-          </div>
-          <span style={{ color: '#E8EAF0' }}>→</span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full" style={{ background: '#8b5cf6' }} />
-            Design
-          </div>
-          <span style={{ color: '#E8EAF0' }}>→</span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full" style={{ background: '#06b6d4' }} />
-            Architect
-          </div>
-          <span style={{ color: '#E8EAF0' }}>→</span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full" style={{ background: '#10b981' }} />
-            Build & Deploy
-          </div>
-        </div>
 
         {/* Input */}
         <div className="relative mb-5">
