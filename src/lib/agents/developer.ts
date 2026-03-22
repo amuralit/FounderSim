@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
 
     const res = await ai.models.generateContent({
       model: 'gemini-3.1-pro-preview',
-      contents: 'Analyze: ' + input + '. ${mission}. Return a JSON object. IMPORTANT: every value must be a string or an array of strings. Never use nested objects. If a field has sub-fields, flatten them into a single descriptive string or an array of strings.',
+      contents: 'Analyze: ' + input + '. ${mission}. Return a JSON object. IMPORTANT: every value must be a plain string (never an array, never a nested object). If a field has multiple items, join them into a single string separated by newlines. Keep values concise and human-readable.',
       config: { tools: [{ googleSearch: {} }] },
     });
 
@@ -77,7 +77,10 @@ export async function POST(req: NextRequest) {
 UI requirements from PRD:
 ${specs.prd.substring(0, 600)}
 
-CRITICAL UI RULE: The /api/agent returns structured JSON. The page.tsx MUST parse and render it as beautiful cards — NOT raw JSON. Use sections, headers, colored badges, bullet lists, and cards for each part of the response. Never show raw JSON to the user.
+CRITICAL UI RULES:
+1. The /api/agent returns structured JSON. The page.tsx MUST parse and render it as beautiful cards — NOT raw JSON. Use sections, headers, colored badges, bullet lists, and cards for each part of the response. Never show raw JSON to the user.
+2. JSON values may be strings OR arrays of strings. If a value is an array, render each element as a separate bullet point or list item — NEVER display raw brackets like ["item1","item2"]. Use Array.isArray() to check, then .map() to render each item.
+3. If a string value looks like a JSON array (starts with "["), parse it with JSON.parse inside a try/catch and render as a list.
 
 Use shadcn/ui components. Let v0 choose the best design.`;
 }
