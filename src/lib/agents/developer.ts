@@ -140,39 +140,63 @@ export async function runDeveloperAgent(specs: DevSpecs): Promise<DevResult> {
       }
     }
 
-    const chatData = chat as Record<string, unknown>;
-    const latestVersion = chatData.latestVersion as Record<string, unknown> | undefined;
-    const fileCount = (latestVersion?.files as unknown[])?.length || 0;
+    let chatData = chat as Record<string, unknown>;
+    let latestVersion = chatData.latestVersion as Record<string, unknown> | undefined;
+    const chatId = chatData.id as string;
+    const projectId = (chatData.projectId as string) || project.id;
+    const webUrl = (chatData.webUrl as string) || null;
 
-    // Auto-deploy
-    if (latestVersion?.id && chatData.id && chatData.projectId) {
-      try {
-        const deployment = await v0.deployments.create({
-          projectId: chatData.projectId as string,
-          chatId: chatData.id as string,
-          versionId: latestVersion.id as string,
-        });
-        const deployData = deployment as unknown as Record<string, unknown>;
-        if (deployData.webUrl) {
-          return {
-            summary: `Generated ${fileCount} files and deployed via v0`,
-            demoUrl: deployData.webUrl as string,
-            webUrl: (chatData.webUrl as string) || null,
-            v0ChatId: (chatData.id as string) || undefined,
-            v0ProjectId: (chatData.projectId as string) || undefined,
-          };
+    // If no version yet, poll for it (v0 might still be building)
+    if (!latestVersion?.id && chatId) {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        await new Promise(r => setTimeout(r, 5000)); // wait 5s
+        try {
+          const refreshed = await v0.chats.getById({ chatId });
+          if (refreshed.latestVersion?.id) {
+            latestVersion = refreshed.latestVersion as unknown as Record<string, unknown>;
+            break;
+          }
+        } catch { /* continue polling */ }
+      }
+    }
+
+    const fileCount = (latestVersion?.files as unknown[])?.length || 0;
+    const demoUrl = (latestVersion?.demoUrl as string) || null;
+
+    // Auto-deploy with retry
+    if (latestVersion?.id) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const deployment = await v0.deployments.create({
+            projectId,
+            chatId,
+            versionId: latestVersion.id as string,
+          });
+          const deployData = deployment as unknown as Record<string, unknown>;
+          const deployedUrl = (deployData.webUrl as string) || demoUrl;
+          if (deployedUrl) {
+            return {
+              summary: `Generated ${fileCount} files and deployed via v0`,
+              demoUrl: deployedUrl,
+              webUrl,
+              v0ChatId: chatId,
+              v0ProjectId: projectId,
+            };
+          }
+          break;
+        } catch (deployErr) {
+          console.error(`v0 deploy attempt ${attempt + 1} failed:`, deployErr);
+          if (attempt === 0) await new Promise(r => setTimeout(r, 3000));
         }
-      } catch (deployErr) {
-        console.error('v0 auto-deploy failed:', deployErr);
       }
     }
 
     return {
       summary: `Generated ${fileCount} files via v0`,
-      demoUrl: (latestVersion?.demoUrl as string) || null,
-      webUrl: (chatData.webUrl as string) || null,
-      v0ChatId: (chatData.id as string) || undefined,
-      v0ProjectId: (chatData.projectId as string) || undefined,
+      demoUrl,
+      webUrl,
+      v0ChatId: chatId,
+      v0ProjectId: projectId,
     };
   } catch (err) {
     console.error('v0 SDK failed, falling back to Gemini:', err);
