@@ -405,6 +405,7 @@ export default function FounderSim() {
         const reader = res.body!.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
+        let currentEvent = '';
 
         while (true) {
           const { done, value } = await reader.read();
@@ -414,7 +415,6 @@ export default function FounderSim() {
           const lines = buffer.split('\n');
           buffer = lines.pop() || '';
 
-          let currentEvent = '';
           for (const line of lines) {
             if (line.startsWith('event: ')) {
               currentEvent = line.slice(7);
@@ -422,8 +422,9 @@ export default function FounderSim() {
               try {
                 const data = JSON.parse(line.slice(6));
                 handleSSEEvent(currentEvent, data);
-              } catch (e) {
-                console.error('SSE parse error:', e);
+              } catch {
+                // Data line split across chunks — keep currentEvent,
+                // the full data line will arrive in the next chunk via buffer
               }
               currentEvent = '';
             }

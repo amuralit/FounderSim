@@ -4,7 +4,7 @@ import { runProductAgent } from '@/lib/agents/product';
 import { runArchitectAgent } from '@/lib/agents/architect';
 import { runDeveloperAgent } from '@/lib/agents/developer';
 import { generateTestCases, runTests, generateQAReport } from '@/lib/agents/tester';
-import { generateLogo, generateCompetitiveVisual, generateMarketMap, generateArchitectureDiagram, generateProductMockup } from '@/lib/image-gen';
+import { generateLogo, generateCompetitiveVisual, generateMarketMap, generateProductMockup } from '@/lib/image-gen';
 
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
@@ -104,11 +104,6 @@ export async function POST(req: NextRequest) {
         send('agent_output', { agent: 'architect', output: architectOutput });
         send('agent_done', { agent: 'architect' });
 
-        // Fire architecture diagram gen in parallel (non-blocking)
-        const archDiagramPromise = generateArchitectureDiagram(
-          architectOutput.substring(0, 400)
-        ).catch(() => null);
-
         // ── IMAGES: send each as it arrives (don't block pipeline) ──
         const withTimeout = (p: Promise<string | null>, ms: number) =>
           Promise.race([p, new Promise<null>(r => setTimeout(() => r(null), ms))]);
@@ -118,7 +113,6 @@ export async function POST(req: NextRequest) {
           withTimeout(logoPromise, 25000).then(d => { if (d) send('image_ready', { type: 'logo', data: d }); }),
           withTimeout(competitiveVisualPromise, 25000).then(d => { if (d) send('image_ready', { type: 'competitive_visual', data: d }); }),
           withTimeout(marketMapPromise, 25000).then(d => { if (d) send('image_ready', { type: 'market_map', data: d }); }),
-          withTimeout(archDiagramPromise, 25000).then(d => { if (d) send('image_ready', { type: 'architecture_diagram', data: d }); }),
           withTimeout(productMockupPromise, 25000).then(d => { if (d) send('image_ready', { type: 'product_mockup', data: d }); }),
         ]).catch(() => {});
 
