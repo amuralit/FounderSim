@@ -115,10 +115,11 @@ export async function runArchitectAgent(brief: string, research: string, prd: st
     ? '\n\nNote: Supabase credentials are available. Use Supabase for database, auth, and real-time features.'
     : '';
 
+  // Truncate inputs for speed — architect doesn't need full research text
   const { text } = await generateText({
     model: google('gemini-3.1-pro-preview'),
     system: ARCHITECT_SYSTEM_PROMPT + supabaseContext,
-    prompt: buildArchitectTaskPrompt(brief, research, prd),
+    prompt: buildArchitectTaskPrompt(brief.substring(0, 800), research.substring(0, 1500), prd.substring(0, 1500)),
   });
   return text;
 }
