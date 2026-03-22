@@ -77,6 +77,8 @@ export async function POST(req: NextRequest) {
 UI requirements from PRD:
 ${specs.prd.substring(0, 600)}
 
+CRITICAL UI RULE: The /api/agent returns structured JSON. The page.tsx MUST parse and render it as beautiful cards — NOT raw JSON. Use sections, headers, colored badges, bullet lists, and cards for each part of the response. Never show raw JSON to the user.
+
 Use shadcn/ui. Dark or light theme. Clean design.`;
 }
 
