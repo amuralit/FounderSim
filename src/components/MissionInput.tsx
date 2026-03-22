@@ -31,16 +31,6 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
   return (
     <div className="absolute inset-0 z-20 flex items-center justify-center" style={{ background: 'rgba(248,249,251,0.95)', backdropFilter: 'blur(40px)' }}>
       <div className="relative z-10 text-center max-w-[600px] w-full px-6">
-        {/* Logo mark */}
-        <div className="mb-8 flex justify-center">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold text-white"
-              style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}>
-              F
-            </div>
-            <span className="text-2xl font-bold tracking-tight" style={{ color: '#111827' }}>FounderSim</span>
-          </div>
-        </div>
 
         {/* Headline */}
         <h1 className="text-[40px] font-bold leading-tight mb-3 tracking-tight" style={{ color: '#111827' }}>
