@@ -8,16 +8,16 @@ interface MissionInputProps {
 
 const SEEDER_PROMPTS = [
   {
+    label: 'Sales Battle Card Agent',
+    prompt: 'An AI agent that turns any competitor URL into a sales battle card — paste a URL, get a structured breakdown of their strengths, weaknesses, pricing, objection handling scripts, trap questions to ask prospects, and win strategies. Real-time data from their actual website. Replaces $20K/yr tools like Klue and Crayon with a self-serve agent.',
+  },
+  {
     label: 'Stock Research Agent',
-    prompt: 'An AI agent that takes any stock ticker and instantly generates a Wall Street-quality research brief — real-time news sentiment, bull vs bear cases with evidence, competitor comparison with live market data, and key risk factors. Like having a Goldman Sachs analyst on demand for $29/mo.',
+    prompt: 'An AI agent that takes any stock ticker and instantly generates a Wall Street-quality research brief — real-time news sentiment, bull vs bear cases with evidence, competitor comparison with live market data, and key risk factors. Like having a Goldman Sachs analyst on demand.',
   },
   {
     label: 'Company Tear-Down Agent',
-    prompt: 'An AI agent that takes any company website URL and generates a complete due diligence tear-down in 60 seconds — business model analysis, revenue stream identification, tech stack detection, hiring signals from job postings, competitive positioning, growth trajectory, and strategic weaknesses. A VC analyst\'s 2-hour research compressed into one API call.',
-  },
-  {
-    label: 'Battle Card Agent',
-    prompt: 'An AI agent that takes any competitor\'s website URL and generates a structured sales battle card — company overview, key strengths, exploitable weaknesses, pricing breakdown, objection handling scripts, and win strategies. Replaces the $20K/yr tools like Klue and Crayon with a self-serve agent at $29/mo.',
+    prompt: 'An AI agent that takes any company website URL and generates a complete due diligence tear-down in 60 seconds — business model analysis, revenue stream identification, tech stack detection, hiring signals from job postings, competitive positioning, and strategic weaknesses.',
   },
 ];
 
