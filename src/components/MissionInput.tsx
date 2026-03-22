@@ -29,8 +29,8 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
   };
 
   return (
-    <div className="absolute inset-0 z-20 flex items-start justify-center overflow-y-auto" style={{ background: 'rgba(248,249,251,0.95)', backdropFilter: 'blur(40px)' }}>
-      <div className="relative z-10 text-center max-w-[600px] w-full px-6 py-16">
+    <div className="absolute inset-0 z-20 flex items-center justify-center" style={{ background: 'rgba(248,249,251,0.95)', backdropFilter: 'blur(40px)' }}>
+      <div className="relative z-10 text-center max-w-[600px] w-full px-6">
 
         {/* Headline */}
         <h1 className="text-[40px] font-bold leading-tight mb-3 tracking-tight" style={{ color: '#111827' }}>
@@ -115,16 +115,6 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
               </div>
             </button>
           ))}
-        </div>
-
-        {/* Architecture diagram */}
-        <div className="mb-8 mx-auto max-w-[480px]" style={{ background: '#111827', borderRadius: 12, padding: '24px 16px', border: '1px solid #1F2937' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/foundersim_architecture_simple.svg"
-            alt="FounderSim architecture — 5 agents from idea to deployed app"
-            className="w-full h-auto"
-          />
         </div>
 
         {/* Agent dots footer */}
