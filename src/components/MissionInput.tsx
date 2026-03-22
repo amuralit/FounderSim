@@ -43,23 +43,51 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
         </div>
 
         {/* Headline */}
-        <h1 className="text-[42px] font-bold leading-tight mb-4 tracking-tight" style={{ color: '#111827' }}>
-          What company should
+        <h1 className="text-[40px] font-bold leading-tight mb-3 tracking-tight" style={{ color: '#111827' }}>
+          One sentence.
           <br />
           <span style={{
             background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
           }}>
-            we build?
+            A deployed AI agent.
           </span>
         </h1>
 
-        <p className="text-base mb-10 leading-relaxed" style={{ color: '#6B7280' }}>
-          Describe your idea in one sentence. Five AI agents will
+        <p className="text-base mb-4 leading-relaxed" style={{ color: '#6B7280' }}>
+          Describe an AI agent. Six agents research the market, design the product,
           <br className="hidden sm:block" />
-          research, design, build, and deploy it — while you watch.
+          write the code, deploy it, and test it — while you watch and steer.
         </p>
+
+        {/* How it works — compact */}
+        <div className="flex justify-center gap-6 mb-8 text-[11px]" style={{ color: '#9CA3AF' }}>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full" style={{ background: '#f59e0b' }} />
+            Strategize
+          </div>
+          <span style={{ color: '#E8EAF0' }}>→</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full" style={{ background: '#3b82f6' }} />
+            Research
+          </div>
+          <span style={{ color: '#E8EAF0' }}>→</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full" style={{ background: '#8b5cf6' }} />
+            Design
+          </div>
+          <span style={{ color: '#E8EAF0' }}>→</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full" style={{ background: '#06b6d4' }} />
+            Architect
+          </div>
+          <span style={{ color: '#E8EAF0' }}>→</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full" style={{ background: '#10b981' }} />
+            Build & Deploy
+          </div>
+        </div>
 
         {/* Input */}
         <div className="relative mb-5">
@@ -67,7 +95,7 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
             value={mission}
             onChange={e => setMission(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-            placeholder="e.g. A tool that helps freelancers track invoices and get paid faster"
+            placeholder="Describe an AI agent in one sentence..."
             autoFocus
             className="w-full h-14 pl-5 pr-36 rounded-2xl text-[15px] outline-none transition-all duration-300"
             style={{
@@ -131,7 +159,7 @@ export default function MissionInput({ onSubmit }: MissionInputProps) {
 
         {/* Agent dots footer */}
         <div className="flex items-center justify-center gap-2">
-          <span className="text-[11px] tracking-wide" style={{ color: '#9CA3AF' }}>Powered by 5 AI Agents</span>
+          <span className="text-[11px] tracking-wide" style={{ color: '#9CA3AF' }}>Zero to Agent · Vercel × DeepMind Hackathon</span>
           <div className="flex gap-1">
             {['#f59e0b', '#3b82f6', '#8b5cf6', '#06b6d4', '#10b981'].map(c => (
               <div key={c} className="w-1.5 h-1.5 rounded-full" style={{ background: c, opacity: 0.8 }} />
