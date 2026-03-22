@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
 
     const res = await ai.models.generateContent({
       model: 'gemini-3.1-pro-preview',
-      contents: 'Analyze: ' + input + '. ${mission}. Return a FLAT JSON object where every value is a string or array of strings. No nested objects. Example: { "title": "Company Name", "summary": "One paragraph summary", "strengths": ["strength 1", "strength 2"], "weaknesses": ["weakness 1", "weakness 2"], "keyInsight": "The most important finding" }. Keep all values as simple strings, never nested objects.',
+      contents: 'Analyze: ' + input + '. ${mission}. Return a JSON object. IMPORTANT: every value must be a string or an array of strings. Never use nested objects. If a field has sub-fields, flatten them into a single descriptive string or an array of strings.',
       config: { tools: [{ googleSearch: {} }] },
     });
 
